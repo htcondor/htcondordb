@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/PelicanPlatform/classad/classad"
-	htcondor "github.com/bbockelm/golang-htcondor"
+	htcondor "github.com/htcondor/golang-htcondor"
 )
 
 // Spoke is a validated pairing: the htcondordb at Address mirrors the schedd named Schedd.

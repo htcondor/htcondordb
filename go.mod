@@ -23,13 +23,13 @@ require (
 	github.com/PelicanPlatform/classad/dbrpc v0.43.0
 	github.com/PelicanPlatform/classad/wasmudf v0.43.0
 	github.com/apache/arrow-go/v18 v18.8.0
-	github.com/bbockelm/cedar v0.7.14
-	github.com/bbockelm/golang-htcondor v0.22.1
+	github.com/bbockelm/cedar v0.7.15
 	github.com/chzyer/readline v1.5.1
 	github.com/dustin/go-humanize v1.1.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/raft v1.8.0
 	github.com/hashicorp/raft-boltdb/v2 v2.4.2
+	github.com/htcondor/golang-htcondor v0.25.0
 	github.com/klauspost/compress v1.20.1
 	github.com/prometheus/client_golang v1.25.0
 	github.com/prometheus/client_model v0.6.3
@@ -80,11 +80,11 @@ require (
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.etcd.io/bbolt v1.4.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.58.0 // indirect
+	golang.org/x/crypto v0.59.0 // indirect
 	golang.org/x/exp v0.0.0-20260718201538-764159d718ef // indirect
-	golang.org/x/net v0.60.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260817212433-ac3dfec99bb1 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect

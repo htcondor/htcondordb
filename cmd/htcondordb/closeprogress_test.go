@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/golang-htcondor/logging"
+	"github.com/htcondor/golang-htcondor/logging"
 )
 
 func closeLogger(t *testing.T) (*logging.Logger, func() string) {

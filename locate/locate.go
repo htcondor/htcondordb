@@ -24,8 +24,8 @@ import (
 	"os"
 	"strings"
 
-	htcondor "github.com/bbockelm/golang-htcondor"
-	"github.com/bbockelm/golang-htcondor/config"
+	htcondor "github.com/htcondor/golang-htcondor"
+	"github.com/htcondor/golang-htcondor/config"
 )
 
 // Subsystem is htcondordb's HTCondor subsystem name, which prefixes both knobs.

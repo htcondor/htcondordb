@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"sync"
 
-	config "github.com/bbockelm/golang-htcondor/config"
+	config "github.com/htcondor/golang-htcondor/config"
 
 	"github.com/htcondor/htcondordb/userfunc"
 )

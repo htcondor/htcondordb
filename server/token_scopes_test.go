@@ -17,7 +17,7 @@ import (
 	"github.com/bbockelm/cedar/security"
 	cedarserver "github.com/bbockelm/cedar/server"
 	"github.com/bbockelm/cedar/stream"
-	"github.com/bbockelm/golang-htcondor/sessioncache"
+	"github.com/htcondor/golang-htcondor/sessioncache"
 
 	"github.com/htcondor/htcondordb/command"
 )

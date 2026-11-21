@@ -11,9 +11,9 @@ import (
 
 	"github.com/PelicanPlatform/classad/changefeed"
 	"github.com/PelicanPlatform/classad/db"
-	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/golang-htcondor/daemon"
-	"github.com/bbockelm/golang-htcondor/logging"
+	"github.com/htcondor/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/daemon"
+	"github.com/htcondor/golang-htcondor/logging"
 
 	"github.com/htcondor/htcondordb/server"
 )

@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bbockelm/golang-htcondor/droppriv"
+	"github.com/htcondor/golang-htcondor/droppriv"
 )
 
 // readCredentialFile reads a credential file, elevating to root via droppriv when the

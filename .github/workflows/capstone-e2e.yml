@@ -60,7 +60,7 @@ jobs:
         working-directory: htcondordb
         env:
           GOFLAGS: -mod=mod
-          GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+          GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
         run: |
           go build -buildvcs=false -o /tmp/htcondordb ./cmd/htcondordb
           ( cd kafkasync && go build -buildvcs=false -o /tmp/htcondordb-plugin-kafka ./cmd/htcondordb-plugin-kafka )

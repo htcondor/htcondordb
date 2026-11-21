@@ -18,8 +18,8 @@ import (
 	"github.com/PelicanPlatform/classad/dbrpc"
 	cedarclient "github.com/bbockelm/cedar/client"
 	"github.com/bbockelm/cedar/message"
-	htcondor "github.com/bbockelm/golang-htcondor"
-	"github.com/bbockelm/golang-htcondor/config"
+	htcondor "github.com/htcondor/golang-htcondor"
+	"github.com/htcondor/golang-htcondor/config"
 
 	"github.com/htcondor/htcondordb/command"
 	"github.com/htcondor/htcondordb/ha/consistent"

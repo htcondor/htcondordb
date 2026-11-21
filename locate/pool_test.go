@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/PelicanPlatform/classad/classad"
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 )
 
 // ad builds an HTCondorDB ad the way the daemon advertises one: a Name, the Machine it runs

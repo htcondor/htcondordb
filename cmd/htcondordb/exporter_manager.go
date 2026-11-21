@@ -16,8 +16,8 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/bbockelm/cedar/security"
-	htconfig "github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/golang-htcondor/droppriv"
+	htconfig "github.com/htcondor/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/droppriv"
 
 	"github.com/htcondor/htcondordb/command"
 	"github.com/htcondor/htcondordb/dbad"

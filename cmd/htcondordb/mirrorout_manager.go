@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 
 	"github.com/htcondor/htcondordb/dbad"
 	"github.com/htcondor/htcondordb/scheddsync"

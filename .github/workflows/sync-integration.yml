@@ -42,7 +42,7 @@ jobs:
         with: { repository: bbockelm/cedar, path: golang-cedar }
       - name: Checkout golang-htcondor
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { repository: bbockelm/golang-htcondor, path: golang-htcondor }
+        with: { repository: htcondor/golang-htcondor, path: golang-htcondor }
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -59,7 +59,7 @@ jobs:
         working-directory: htcondordb
         env:
           GOFLAGS: -mod=mod
-          GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+          GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
         # -count=1 defeats the test cache so the real HTCondor is always exercised; a long
         # timeout accommodates the match+execute pipeline for the history test.
         run: go test -run Integration -v -count=1 -timeout 20m ./scheddsync/ ./historyimport/
@@ -72,12 +72,12 @@ jobs:
         working-directory: htcondordb
         env:
           GOFLAGS: -mod=mod
-          GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+          GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
         run: go test -v -count=1 -timeout 10m ./locate/
 
       - name: Run Grafana datasource discovery tests
         working-directory: htcondordb/grafana
         env:
           GOFLAGS: -mod=mod
-          GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+          GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
         run: go test -v -count=1 -timeout 10m ./pkg/...

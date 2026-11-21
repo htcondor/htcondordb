@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/db"
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 
 	"github.com/htcondor/htcondordb/server"
 )

@@ -190,7 +190,7 @@ htcondordb is built on:
 
 - `github.com/PelicanPlatform/classad/db` — the embedded ClassAd log.
 - `github.com/PelicanPlatform/classad/dbrpc` — the client/server RPC over CEDAR.
-- `github.com/bbockelm/golang-htcondor` — config, security policy, DaemonCore
+- `github.com/htcondor/golang-htcondor` — config, security policy, DaemonCore
   integration (running under `condor_master`, ready/keepalive pings, privilege
   drop, SIGHUP reconfigure).
 - `github.com/bbockelm/cedar` — authenticated, encrypted transport.

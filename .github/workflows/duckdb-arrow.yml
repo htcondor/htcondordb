@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOFLAGS: -mod=mod
-      GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+      GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
       # The test is pointed at the binary installed below, and REQUIRE turns a skip into a
       # failure. Without REQUIRE this job would pass on a runner where the download failed.
       HTCONDORDB_REQUIRE_DUCKDB: "1"

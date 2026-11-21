@@ -12,8 +12,8 @@ import (
 	"github.com/apache/arrow-go/v18/arrow/flight"
 	"google.golang.org/grpc"
 
-	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/golang-htcondor/logging"
+	"github.com/htcondor/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/logging"
 
 	"github.com/htcondor/htcondordb/arrowtype"
 	"github.com/htcondor/htcondordb/flightsvc"

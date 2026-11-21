@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/classad"
-	htcondor "github.com/bbockelm/golang-htcondor"
+	htcondor "github.com/htcondor/golang-htcondor"
 )
 
 // TestQueueLogRestartRestore is the Level-2 round-trip proof: a REAL schedd must accept a

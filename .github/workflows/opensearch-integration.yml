@@ -55,5 +55,5 @@ jobs:
         env:
           OPENSEARCH_URL: http://localhost:9200
           GOFLAGS: -mod=mod
-          GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+          GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
         run: go test -v -count=1 -timeout 10m ./...

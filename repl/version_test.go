@@ -57,7 +57,7 @@ func TestVersionReportsRealComponents(t *testing.T) {
 		Deps: []*debug.Module{
 			{Path: "github.com/PelicanPlatform/classad", Version: "v0.29.7"},
 			{Path: "github.com/bbockelm/cedar", Version: "v0.6.11"},
-			{Path: "github.com/bbockelm/golang-htcondor", Version: "v0.12.10"},
+			{Path: "github.com/htcondor/golang-htcondor", Version: "v0.12.10"},
 			{Path: "github.com/some/unrelated", Version: "v1.0.0"},
 		},
 		Settings: []debug.BuildSetting{
@@ -93,7 +93,7 @@ func TestVersionShowsAReplacedComponent(t *testing.T) {
 	writeVersion(&out, &debug.BuildInfo{
 		Main: debug.Module{Path: "github.com/htcondor/htcondordb", Version: "(devel)"},
 		Deps: []*debug.Module{{
-			Path:    "github.com/bbockelm/golang-htcondor",
+			Path:    "github.com/htcondor/golang-htcondor",
 			Version: "v0.12.10",
 			Replace: &debug.Module{Path: "/home/me/golang-htcondor", Version: "(devel)"},
 		}},

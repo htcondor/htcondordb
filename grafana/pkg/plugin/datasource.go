@@ -14,7 +14,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 
 	"github.com/htcondor/htcondordb/repl"
 )

@@ -16,7 +16,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/db/scriptagg"
 	"github.com/PelicanPlatform/classad/wasmudf"
-	config "github.com/bbockelm/golang-htcondor/config"
+	config "github.com/htcondor/golang-htcondor/config"
 )
 
 // SANDBOXED USER FUNCTIONS, LOADED FROM CONFIGURATION.
