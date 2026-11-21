@@ -7,7 +7,7 @@ import (
 
 	htcondor "github.com/bbockelm/golang-htcondor"
 	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/htcondordb/command"
+	"github.com/htcondor/htcondordb/command"
 )
 
 func uidDomainSecurityConfig(t *testing.T, body string) (*config.Config, string) {

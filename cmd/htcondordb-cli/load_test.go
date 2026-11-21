@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/PelicanPlatform/classad/classad"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // sample mimics `condor_status -any -long`: old-ClassAd blocks separated by blank

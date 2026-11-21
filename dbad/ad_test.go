@@ -6,7 +6,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 func TestAddAttrs(t *testing.T) {

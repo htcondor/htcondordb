@@ -25,7 +25,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/htcondordb/watchfeed"
+	"github.com/htcondor/htcondordb/watchfeed"
 )
 
 // Dialer establishes a fresh DAEMON-level dbrpc client to the leader. The replicator

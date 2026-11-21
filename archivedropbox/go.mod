@@ -1,4 +1,4 @@
-module github.com/bbockelm/htcondordb/archivedropbox
+module github.com/htcondor/htcondordb/archivedropbox
 
 go 1.26.0
 
@@ -14,7 +14,7 @@ require (
 	github.com/PelicanPlatform/classad/dbrpc v0.43.0
 	github.com/bbockelm/cedar v0.7.14
 	github.com/bbockelm/golang-htcondor v0.22.1
-	github.com/bbockelm/htcondordb v0.0.0
+	github.com/htcondor/htcondordb v0.0.0
 )
 
 require (
@@ -46,4 +46,4 @@ require (
 // A relative replace (the same pattern grafana/go.mod uses) keeps one copy of the format with no
 // tag to hold in step. The dependency runs one way only: nothing in the main module may import
 // this one.
-replace github.com/bbockelm/htcondordb => ../
+replace github.com/htcondor/htcondordb => ../

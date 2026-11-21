@@ -6,7 +6,7 @@ import (
 
 	"github.com/apache/arrow-go/v18/arrow"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // Holding a table's derived Arrow schema for a short while.

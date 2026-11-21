@@ -25,8 +25,8 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/dropboxframe"
-	"github.com/bbockelm/htcondordb/dropboxmanifest"
+	"github.com/htcondor/htcondordb/dropboxframe"
+	"github.com/htcondor/htcondordb/dropboxmanifest"
 )
 
 // batchPattern matches the exporter's finished batches in either container:

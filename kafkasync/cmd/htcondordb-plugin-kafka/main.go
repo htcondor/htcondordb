@@ -30,11 +30,11 @@ import (
 	"github.com/bbockelm/cedar/security"
 	htcondor "github.com/bbockelm/golang-htcondor"
 	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/htcondordb/kafkasync"
+	"github.com/htcondor/htcondordb/kafkasync"
 )
 
 // dbSessionCommand is the CEDAR command for htcondordb's multiplexed dbrpc session. It must
-// match github.com/bbockelm/htcondordb/command.DBSession (74000); it is duplicated here so
+// match github.com/htcondor/htcondordb/command.DBSession (74000); it is duplicated here so
 // this standalone module need not depend on the htcondordb daemon module.
 const dbSessionCommand = 74000
 

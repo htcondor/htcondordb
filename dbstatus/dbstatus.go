@@ -23,7 +23,7 @@ import (
 	htcondor "github.com/bbockelm/golang-htcondor"
 	"github.com/bbockelm/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/command"
+	"github.com/htcondor/htcondordb/command"
 )
 
 // DefaultTimeout bounds one status exchange. A status read sits in front of a query the caller is

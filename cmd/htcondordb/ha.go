@@ -19,11 +19,11 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/dbpeer"
-	"github.com/bbockelm/htcondordb/ha/consistent"
-	"github.com/bbockelm/htcondordb/ha/leaderfollower"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/dbpeer"
+	"github.com/htcondor/htcondordb/ha/consistent"
+	"github.com/htcondor/htcondordb/ha/leaderfollower"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // HA modes (HTCONDORDB_HA_MODE).

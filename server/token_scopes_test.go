@@ -19,7 +19,7 @@ import (
 	"github.com/bbockelm/cedar/stream"
 	"github.com/bbockelm/golang-htcondor/sessioncache"
 
-	"github.com/bbockelm/htcondordb/command"
+	"github.com/htcondor/htcondordb/command"
 )
 
 // These tests run the session command over a real CEDAR handshake authenticated by IDTOKENs, so

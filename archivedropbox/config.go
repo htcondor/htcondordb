@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bbockelm/htcondordb/dropboxframe"
+	"github.com/htcondor/htcondordb/dropboxframe"
 )
 
 // Kind is the exporter registry kind for this exporter.

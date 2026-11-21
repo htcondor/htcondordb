@@ -38,13 +38,13 @@ import (
 	"github.com/bbockelm/golang-htcondor/logging"
 	"github.com/dustin/go-humanize"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/dbdir"
-	"github.com/bbockelm/htcondordb/locate"
-	"github.com/bbockelm/htcondordb/metrics"
-	"github.com/bbockelm/htcondordb/server"
-	"github.com/bbockelm/htcondordb/userfunc"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/dbdir"
+	"github.com/htcondor/htcondordb/locate"
+	"github.com/htcondor/htcondordb/metrics"
+	"github.com/htcondor/htcondordb/server"
+	"github.com/htcondor/htcondordb/userfunc"
 )
 
 // version is stamped at build time via `-ldflags "-X main.version=..."` (see the

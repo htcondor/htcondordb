@@ -1,4 +1,4 @@
-module github.com/bbockelm/htcondordb/opensearchsync
+module github.com/htcondor/htcondordb/opensearchsync
 
 go 1.26.0
 

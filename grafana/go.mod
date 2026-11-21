@@ -1,4 +1,4 @@
-module github.com/bbockelm/htcondordb/grafana
+module github.com/htcondor/htcondordb/grafana
 
 go 1.26.5
 
@@ -13,8 +13,8 @@ require (
 	github.com/apache/arrow-go/v18 v18.8.0
 	github.com/bbockelm/cedar v0.7.14
 	github.com/bbockelm/golang-htcondor v0.22.1
-	github.com/bbockelm/htcondordb v0.0.0
 	github.com/grafana/grafana-plugin-sdk-go v0.298.0
+	github.com/htcondor/htcondordb v0.0.0
 )
 
 require (
@@ -117,4 +117,4 @@ require (
 )
 
 // The plugin lives inside the htcondordb repo and reuses its repl SQL engine.
-replace github.com/bbockelm/htcondordb => ../
+replace github.com/htcondor/htcondordb => ../

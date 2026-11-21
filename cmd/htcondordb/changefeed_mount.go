@@ -15,7 +15,7 @@ import (
 	"github.com/bbockelm/golang-htcondor/daemon"
 	"github.com/bbockelm/golang-htcondor/logging"
 
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // startChangeFeed serves the transport-neutral HTTP/SSE change feed

@@ -1,4 +1,4 @@
-module github.com/bbockelm/htcondordb/kafkasync
+module github.com/htcondor/htcondordb/kafkasync
 
 go 1.26.0
 

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/db"
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 // TestArchiveSizeLimitConfig pins how the space-limit knobs resolve: a shared default applied to

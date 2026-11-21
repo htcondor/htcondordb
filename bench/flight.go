@@ -12,8 +12,8 @@ import (
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
-	"github.com/bbockelm/htcondordb/flightsvc"
+	"github.com/htcondor/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/flightsvc"
 )
 
 // The Flight SQL endpoint, for the typed consumer.

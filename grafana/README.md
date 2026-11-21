@@ -2,7 +2,7 @@
 
 A Grafana datasource plugin that queries HTCondor job, machine, and history data
 stored in [htcondordb](../README.md) using its SQL engine. It is a separate Go
-module (`github.com/bbockelm/htcondordb/grafana`) living inside the htcondordb
+module (`github.com/htcondor/htcondordb/grafana`) living inside the htcondordb
 repo so it can reuse the repl SQL parser/executor and the dbrpc client directly.
 
 Two guides sit alongside this one, which is the developer reference:

@@ -9,8 +9,8 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/db/replicate"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
-	"github.com/bbockelm/htcondordb/syncstatus"
+	"github.com/htcondor/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/syncstatus"
 )
 
 // maxBatch bounds the writes one hub transaction carries. A flush window normally commits far

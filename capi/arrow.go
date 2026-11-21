@@ -13,7 +13,7 @@ import (
 	"bytes"
 	"unsafe"
 
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // Arrow IPC over the C API.

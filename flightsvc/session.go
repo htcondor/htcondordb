@@ -16,7 +16,7 @@ import (
 	"github.com/PelicanPlatform/classad/dbrpc"
 	cedarsec "github.com/bbockelm/cedar/security"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // Serving Flight from inside the daemon, without a second authorization story.

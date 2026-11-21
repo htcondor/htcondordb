@@ -11,9 +11,9 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/server"
-	"github.com/bbockelm/htcondordb/syncstatus"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/server"
+	"github.com/htcondor/htcondordb/syncstatus"
 )
 
 // TestScheddDaemonName pins the schedd's naming rule (get_daemon_name.cpp), because a hub pairs a

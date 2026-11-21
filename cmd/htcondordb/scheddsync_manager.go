@@ -18,10 +18,10 @@ import (
 	"github.com/bbockelm/golang-htcondor/config"
 	"github.com/dustin/go-humanize"
 
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/scheddsync"
-	"github.com/bbockelm/htcondordb/server"
-	"github.com/bbockelm/htcondordb/syncstatus"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/server"
+	"github.com/htcondor/htcondordb/syncstatus"
 )
 
 // scheddSyncManager owns the schedd-sync tailers so their configuration

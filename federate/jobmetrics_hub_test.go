@@ -8,8 +8,8 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
-	"github.com/bbockelm/htcondordb/syncstatus"
+	"github.com/htcondor/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/syncstatus"
 )
 
 // enableJobMetrics gives the spoke a job_metrics archive, as HTCONDORDB_JOB_METRICS does.

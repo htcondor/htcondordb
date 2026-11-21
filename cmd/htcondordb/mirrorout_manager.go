@@ -14,9 +14,9 @@ import (
 
 	"github.com/bbockelm/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/scheddsync"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // mirrorOutSettings is the resolved, comparable configuration of the mirror-out.

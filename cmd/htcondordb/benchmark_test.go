@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/htcondordb/bench"
+	"github.com/htcondor/htcondordb/bench"
 )
 
 // syncBuffer is a bytes.Buffer safe to read while another goroutine writes it.

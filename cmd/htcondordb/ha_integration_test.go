@@ -21,8 +21,8 @@ import (
 	htcondor "github.com/bbockelm/golang-htcondor"
 	"github.com/bbockelm/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/ha/consistent"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/ha/consistent"
 )
 
 // This is the realistic HA integration test: it compiles the actual htcondordb binary once,

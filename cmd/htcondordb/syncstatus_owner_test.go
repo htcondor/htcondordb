@@ -12,8 +12,8 @@ import (
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/server"
-	"github.com/bbockelm/htcondordb/syncstatus"
+	"github.com/htcondor/htcondordb/server"
+	"github.com/htcondor/htcondordb/syncstatus"
 )
 
 // writeSession is a WRITE-level remote connection to svc.

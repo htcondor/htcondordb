@@ -10,7 +10,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

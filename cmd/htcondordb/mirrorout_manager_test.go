@@ -10,7 +10,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/server"
 )
 
 func TestResolveMirrorOutSettings(t *testing.T) {

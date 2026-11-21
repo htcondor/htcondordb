@@ -36,17 +36,17 @@ import (
 	htcondor "github.com/bbockelm/golang-htcondor"
 	"github.com/bbockelm/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/userfunc"
+	"github.com/htcondor/htcondordb/userfunc"
 
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/dbdir"
-	"github.com/bbockelm/htcondordb/dbpeer"
-	"github.com/bbockelm/htcondordb/ha/consistent"
-	"github.com/bbockelm/htcondordb/locate"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/dbdir"
+	"github.com/htcondor/htcondordb/dbpeer"
+	"github.com/htcondor/htcondordb/ha/consistent"
+	"github.com/htcondor/htcondordb/locate"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 const usageText = `htcondordb-cli - interactive SQL-like shell and loader for an htcondordb daemon.

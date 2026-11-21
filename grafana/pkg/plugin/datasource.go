@@ -16,7 +16,7 @@ import (
 
 	"github.com/bbockelm/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // Compile-time checks that Datasource satisfies the SDK handler interfaces.

@@ -9,8 +9,8 @@ import (
 
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // knownTimeAttrs are the attributes stored as unix-epoch seconds; a column with one of these

@@ -37,7 +37,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // tableType is what every htcondordb table reports as. Flight SQL's table_type is the

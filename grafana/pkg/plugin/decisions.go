@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // Asking the store what a result's columns hold, rather than guessing from the cells.

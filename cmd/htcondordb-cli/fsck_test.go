@@ -11,7 +11,7 @@ import (
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/collections"
 
-	"github.com/bbockelm/htcondordb/dbdir"
+	"github.com/htcondor/htcondordb/dbdir"
 )
 
 // buildDB writes a database-shaped directory: a couple of tables and an archive,

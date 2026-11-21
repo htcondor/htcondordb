@@ -14,7 +14,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/db/replicate"
 
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 // sample is a job_metrics record as a spoke's sampler writes it: job cluster.0, run 0, taken at

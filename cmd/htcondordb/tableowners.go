@@ -8,7 +8,7 @@ import (
 
 	"github.com/bbockelm/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // Owners in the server's table-ownership registry (server.TableOwners). Each manager registers

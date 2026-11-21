@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bbockelm/htcondordb/dropboxmanifest"
+	"github.com/htcondor/htcondordb/dropboxmanifest"
 )
 
 // tmpPrefix marks a file the exporter is still writing (or a loss report being staged). A consumer

@@ -9,7 +9,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/federate"
+	"github.com/htcondor/htcondordb/federate"
 )
 
 func TestResolveFederationSettings(t *testing.T) {

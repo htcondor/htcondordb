@@ -43,10 +43,10 @@ import (
 	"github.com/bbockelm/cedar/security"
 	htcondor "github.com/bbockelm/golang-htcondor"
 	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/dbpeer"
-	"github.com/bbockelm/htcondordb/locate"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/dbpeer"
+	"github.com/htcondor/htcondordb/locate"
+	"github.com/htcondor/htcondordb/repl"
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 )

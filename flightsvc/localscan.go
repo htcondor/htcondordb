@@ -8,7 +8,7 @@ import (
 	"github.com/PelicanPlatform/classad/collections"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // Reading the store's columns without the loopback round trip.

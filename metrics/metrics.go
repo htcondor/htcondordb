@@ -22,8 +22,8 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 const namespace = "htcondordb"

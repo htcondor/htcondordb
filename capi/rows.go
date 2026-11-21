@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/classad"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // The chunked result cursor: hcdb_sql's answer for callers that cannot afford the whole

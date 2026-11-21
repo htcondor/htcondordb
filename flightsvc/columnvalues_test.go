@@ -6,7 +6,7 @@ import (
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // TestColumnValuesOfTranslatesEachKind: the relay's dense arrays go to the encoder as they are.

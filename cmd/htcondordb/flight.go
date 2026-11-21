@@ -15,8 +15,8 @@ import (
 	"github.com/bbockelm/golang-htcondor/config"
 	"github.com/bbockelm/golang-htcondor/logging"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
-	"github.com/bbockelm/htcondordb/flightsvc"
+	"github.com/htcondor/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/flightsvc"
 )
 
 // The Arrow Flight SQL listener: opt-in, on its own port, and refusing to start without an

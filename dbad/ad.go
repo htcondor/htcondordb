@@ -15,7 +15,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 // AdType is the ad's MyType. It is not a standard HTCondor daemon type, so the collector routes

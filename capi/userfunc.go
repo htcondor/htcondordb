@@ -7,7 +7,7 @@ import (
 
 	config "github.com/bbockelm/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/userfunc"
+	"github.com/htcondor/htcondordb/userfunc"
 )
 
 // User functions in the client library.

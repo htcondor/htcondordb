@@ -18,9 +18,9 @@ import (
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/locate"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/locate"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // connConfig is the resolved connection settings for one datasource instance.

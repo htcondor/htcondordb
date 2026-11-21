@@ -24,8 +24,8 @@ import (
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/db"
 
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 // Table is the heartbeat table's name and Key the one row's key.

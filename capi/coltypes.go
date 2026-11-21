@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // Telling a caller what a column HOLDS, rather than letting it guess from the first cell.

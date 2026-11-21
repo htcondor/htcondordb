@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/htcondordb/locate"
+	"github.com/htcondor/htcondordb/locate"
 )
 
 // testConfig writes body to a throwaway condor_config and returns a Config read from it, with

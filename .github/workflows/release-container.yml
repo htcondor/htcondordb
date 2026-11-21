@@ -1,6 +1,6 @@
 name: Release Container
 
-# Publishes ghcr.io/bbockelm/htcondordb, for deployments that have no RPM to
+# Publishes ghcr.io/htcondor/htcondordb, for deployments that have no RPM to
 # install -- a federation hub under Kubernetes, principally. The release
 # tarballs and RPMs in release.yml are unaffected and remain how an AP
 # installs a spoke.

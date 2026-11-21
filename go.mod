@@ -1,4 +1,4 @@
-module github.com/bbockelm/htcondordb
+module github.com/htcondor/htcondordb
 
 go 1.26.0
 

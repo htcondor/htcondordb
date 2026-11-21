@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bbockelm/htcondordb/dropboxmanifest"
+	"github.com/htcondor/htcondordb/dropboxmanifest"
 )
 
 // TestEveryBatchGetsAManifest, in both containers: the manifest is a property of a batch, not of

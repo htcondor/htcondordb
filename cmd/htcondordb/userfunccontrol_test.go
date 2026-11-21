@@ -19,9 +19,9 @@ import (
 	cedarserver "github.com/bbockelm/cedar/server"
 	"github.com/bbockelm/cedar/stream"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/server"
-	"github.com/bbockelm/htcondordb/userfunc"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/server"
+	"github.com/htcondor/htcondordb/userfunc"
 )
 
 // Registering a user function is an administrative act on a global, shared name space: the

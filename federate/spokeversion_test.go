@@ -6,8 +6,8 @@ import (
 
 	"github.com/PelicanPlatform/classad/db/replicate"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
-	"github.com/bbockelm/htcondordb/syncstatus"
+	"github.com/htcondor/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/syncstatus"
 )
 
 // TestSpokeBuildReachesTheSourceRow: the build a spoke reports on its heartbeat is published on

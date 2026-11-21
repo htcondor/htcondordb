@@ -11,7 +11,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/bench"
+	"github.com/htcondor/htcondordb/bench"
 )
 
 // Benchmark client mode: the load generator, pointed at a server that is already running.

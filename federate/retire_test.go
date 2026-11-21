@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/cedarsync"
 )
 
 // TestRetireRemovesCursorsBeforeRows: retirement forgets a source's cursors before deleting its
