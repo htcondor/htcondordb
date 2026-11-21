@@ -8,7 +8,7 @@ import (
 	"github.com/PelicanPlatform/classad/db/replicate"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/watchfeed"
+	"github.com/htcondor/htcondordb/watchfeed"
 )
 
 // undecodableSink records Apply and ApplyUndecodable calls.

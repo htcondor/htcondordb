@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/htcondordb/scheddsync"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // TestJobMetricsDefaults pins what an admin gets by doing nothing: sampling OFF (it adds a record

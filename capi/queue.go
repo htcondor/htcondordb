@@ -49,9 +49,9 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/dbstatus"
+	"github.com/htcondor/htcondordb/dbstatus"
 )
 
 // Liveness states reported by hcdb_queue_state. Only Ready means a query may be

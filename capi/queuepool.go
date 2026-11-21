@@ -40,7 +40,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 )
 
 // How large the pool may grow, and the knob that changes it.

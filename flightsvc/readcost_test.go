@@ -22,7 +22,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // Where a Flight read's time actually goes, and how much is left for a columnar producer.

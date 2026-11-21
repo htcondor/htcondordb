@@ -15,11 +15,11 @@ import (
 	"github.com/PelicanPlatform/classad/classad"
 	cedarclient "github.com/bbockelm/cedar/client"
 	"github.com/bbockelm/cedar/message"
-	htcondor "github.com/bbockelm/golang-htcondor"
-	"github.com/bbockelm/golang-htcondor/config"
+	htcondor "github.com/htcondor/golang-htcondor"
+	"github.com/htcondor/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/userfunc"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/userfunc"
 )
 
 // The `function` subcommand: the administrative path to the user functions stored in the

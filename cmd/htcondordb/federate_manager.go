@@ -13,12 +13,12 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/federate"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/federate"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // federationManager runs this daemon as a federation hub (see the federate package and

@@ -3,7 +3,7 @@ package repl
 import (
 	"testing"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // TestCellValueReadsTheDeclaredTypeOrNull is the unit test for the one place this path parses

@@ -22,9 +22,9 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/db/replicate"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/syncstatus"
+	"github.com/htcondor/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/syncstatus"
 )
 
 // Defaults for Config's durations.

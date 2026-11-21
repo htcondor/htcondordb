@@ -9,7 +9,7 @@ import (
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/htcondordb/watchfeed"
+	"github.com/htcondor/htcondordb/watchfeed"
 )
 
 func mustAd(t *testing.T, text string) *classad.ClassAd {

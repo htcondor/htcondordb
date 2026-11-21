@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bbockelm/htcondordb/ansi"
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/ansi"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // Dialect selects how a WHERE clause's expressions are read, switchable in the REPL with

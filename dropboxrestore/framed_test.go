@@ -12,7 +12,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/dropboxframe"
+	"github.com/htcondor/htcondordb/dropboxframe"
 )
 
 // writeFramedBatch builds a batch in the framed container, the way the exporter does.

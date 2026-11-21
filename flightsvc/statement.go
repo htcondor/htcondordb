@@ -19,9 +19,9 @@ import (
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/ansi"
-	"github.com/bbockelm/htcondordb/arrowtype"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/ansi"
+	"github.com/htcondor/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // The statement surface: one shape, and a refusal for everything else.

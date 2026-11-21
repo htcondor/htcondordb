@@ -13,7 +13,7 @@ import (
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 func decl(name string, dt arrow.DataType, nullable bool) arrowtype.Decision {

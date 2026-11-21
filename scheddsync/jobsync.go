@@ -25,7 +25,7 @@ import (
 	"github.com/PelicanPlatform/classad/collections/wire"
 	"github.com/PelicanPlatform/classad/db"
 
-	"github.com/bbockelm/golang-htcondor/classadlog"
+	"github.com/htcondor/golang-htcondor/classadlog"
 )
 
 // KeyAttr is the ad attribute the schedd-sync stamps with each row's storage key, so the

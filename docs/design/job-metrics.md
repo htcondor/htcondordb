@@ -482,7 +482,7 @@ It was chosen because `classadlog.Parser` exposed no per-entry offset: `GetNextO
 in the consumed bytes at `Close`, so mid-pass every commit in a pass shares one position. The note
 in §10 recorded that the exact coordinate would be "strictly better" and that the release-chain
 cost was why it was skipped. That cost was three lines
-([golang-htcondor#512](https://github.com/bbockelm/golang-htcondor/pull/512) adds
+([golang-htcondor#512](https://github.com/htcondor/golang-htcondor/pull/512) adds
 `Parser.CurrentOffset`), and it was much smaller than the bug.
 
 The position goes on the record too (`LogSeq`, `LogOffset`). A transaction samples each job at

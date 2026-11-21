@@ -36,7 +36,7 @@ import (
 	"github.com/PelicanPlatform/classad/dbrpc"
 	cedarserver "github.com/bbockelm/cedar/server"
 
-	"github.com/bbockelm/htcondordb/command"
+	"github.com/htcondor/htcondordb/command"
 )
 
 // Authorizer reports whether an authenticated peer is allowed at an HTCondor

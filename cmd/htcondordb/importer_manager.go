@@ -17,13 +17,13 @@ import (
 	"time"
 
 	"github.com/bbockelm/cedar/security"
-	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/golang-htcondor/droppriv"
+	"github.com/htcondor/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/droppriv"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/historyimport"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/historyimport"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // importerManager launches and supervises the out-of-process history-import

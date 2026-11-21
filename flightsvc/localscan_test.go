@@ -13,7 +13,7 @@ import (
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/arrow/memory"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // localScanFixture is a COLUMNAR archive plus both ways of reading it. Columnar deliberately: an

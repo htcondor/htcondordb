@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/htcondordb/bench"
+	"github.com/htcondor/htcondordb/bench"
 )
 
 // flagsFor builds the client's flags without touching the package-level flag set, which can only

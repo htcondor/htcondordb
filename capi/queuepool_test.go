@@ -16,7 +16,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 )
 
 // The pool is tested over real TCP sockets to a real dbrpc server, not over

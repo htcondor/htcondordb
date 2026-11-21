@@ -9,7 +9,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 // StatusSource is anything exposing a live SyncStatus -- a *scheddsync.JobSync or

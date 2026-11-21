@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/arrowstream"
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowstream"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // `arrow`: write a table out as an Arrow IPC stream.

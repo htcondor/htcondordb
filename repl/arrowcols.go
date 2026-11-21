@@ -9,7 +9,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // Typing a SELECT's result columns for Arrow.

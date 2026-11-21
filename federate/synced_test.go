@@ -12,7 +12,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/db/replicate"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/cedarsync"
 )
 
 // replayGate stalls replays mid-way: while armed, each new connection passes the first allow bytes

@@ -25,7 +25,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/collections"
 
-	"github.com/bbockelm/htcondordb/dbdir"
+	"github.com/htcondor/htcondordb/dbdir"
 )
 
 // errDamageFound makes `fsck` exit non-zero when a table is damaged, without the

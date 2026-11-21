@@ -7,8 +7,8 @@ import (
 	"github.com/bbockelm/cedar/message"
 	cedarserver "github.com/bbockelm/cedar/server"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/dbad"
 )
 
 // statusReporter answers DBSyncStatus requests with the daemon's sync health.

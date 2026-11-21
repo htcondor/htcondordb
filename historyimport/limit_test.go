@@ -3,7 +3,7 @@ package historyimport
 import (
 	"testing"
 
-	htcondor "github.com/bbockelm/golang-htcondor"
+	htcondor "github.com/htcondor/golang-htcondor"
 )
 
 // TestHistoryQueryIsUncapped pins the wire-level meaning of "no cap". The history

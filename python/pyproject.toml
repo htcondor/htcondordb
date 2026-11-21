@@ -33,8 +33,8 @@ classad = ["htcondor"]
 test = ["pytest>=7"]
 
 [project.urls]
-Homepage = "https://github.com/bbockelm/htcondordb"
-Source = "https://github.com/bbockelm/htcondordb"
+Homepage = "https://github.com/htcondor/htcondordb"
+Source = "https://github.com/htcondor/htcondordb"
 
 # The version comes from the repository's v* tags -- the same ones release.yml builds the
 # Go artifacts from, and the same ones the Makefile stamps into their -version output. One

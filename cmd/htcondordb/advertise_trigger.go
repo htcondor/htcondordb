@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/bbockelm/htcondordb/dbad"
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/dbad"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 const (

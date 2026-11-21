@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bbockelm/htcondordb/dropboxframe"
+	"github.com/htcondor/htcondordb/dropboxframe"
 )
 
 // writeFramed writes a batch as a framed zstd stream: batch-<seq>-<firstModUnix>.cadf.

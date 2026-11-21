@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/golang-htcondor/logging"
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/golang-htcondor/logging"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // TestFlightLimitsParsing: the limits are the endpoint's only protection against a query that

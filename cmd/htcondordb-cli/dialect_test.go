@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // TestParseFlagsDialect: `.dialect` is interactive, so without this flag the ANSI dialect could

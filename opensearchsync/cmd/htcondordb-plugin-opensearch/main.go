@@ -29,13 +29,13 @@ import (
 	"github.com/PelicanPlatform/classad/dbrpc"
 	cedarclient "github.com/bbockelm/cedar/client"
 	"github.com/bbockelm/cedar/security"
-	htcondor "github.com/bbockelm/golang-htcondor"
-	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/htcondordb/opensearchsync"
+	htcondor "github.com/htcondor/golang-htcondor"
+	"github.com/htcondor/golang-htcondor/config"
+	"github.com/htcondor/htcondordb/opensearchsync"
 )
 
 // dbSessionCommand is the CEDAR command for htcondordb's multiplexed dbrpc session. It must
-// match github.com/bbockelm/htcondordb/command.DBSession (74000); it is duplicated here so
+// match github.com/htcondor/htcondordb/command.DBSession (74000); it is duplicated here so
 // this standalone module need not depend on the htcondordb daemon module.
 const dbSessionCommand = 74000
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
-	htcondor "github.com/bbockelm/golang-htcondor"
+	htcondor "github.com/htcondor/golang-htcondor"
 )
 
 // epochConfig enables per-run-instance (epoch) history recording on the harness

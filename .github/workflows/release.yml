@@ -42,7 +42,7 @@ jobs:
           GOFLAGS: -mod=mod
           # Fetch the bbockelm/PelicanPlatform module tags directly from GitHub (bypass the
           # module proxy + checksum DB) so a just-pushed dependency tag resolves immediately.
-          GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+          GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
           # Compile the columnar SIMD engine in classad/collections/vm into the shipped
           # binaries. This step runs `go build` directly rather than through the Makefile, so
           # the Makefile's GOEXPERIMENT default does not reach it and has to be repeated here.
@@ -102,7 +102,7 @@ jobs:
       - name: Build RPMs (amd64, arm64)
         env:
           GOFLAGS: -mod=mod
-          GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+          GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
         run: |
           set -euo pipefail
           for arch in amd64 arm64; do
@@ -127,7 +127,7 @@ jobs:
           CGO_ENABLED: '0'
           GOWORK: 'off'
           GOFLAGS: -mod=mod
-          GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+          GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
         working-directory: grafana
         run: |
           set -euo pipefail

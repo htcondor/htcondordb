@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/golang-htcondor/logging"
+	"github.com/htcondor/golang-htcondor/logging"
 )
 
 // freePort reserves a port and releases it, so the listener under test can bind it.

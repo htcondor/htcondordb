@@ -14,13 +14,13 @@ import (
 	"github.com/PelicanPlatform/classad/db/replicate"
 	"github.com/PelicanPlatform/classad/dbrpc"
 	cedarclient "github.com/bbockelm/cedar/client"
-	htcondor "github.com/bbockelm/golang-htcondor"
-	"github.com/bbockelm/golang-htcondor/config"
+	htcondor "github.com/htcondor/golang-htcondor"
+	"github.com/htcondor/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/dbpeer"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/dbpeer"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // cedarSyncManager owns the native-CEDAR fan-in replicators (cedarsync.Runner): each mirrors a

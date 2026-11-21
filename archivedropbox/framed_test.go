@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bbockelm/htcondordb/dropboxframe"
+	"github.com/htcondor/htcondordb/dropboxframe"
 )
 
 func framedWriter(t *testing.T, dir string, minFrame int) *dropboxWriter {

@@ -14,7 +14,7 @@ import (
 	"github.com/PelicanPlatform/classad/collections/vm"
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // As everywhere else in this package, every name below is used by exactly one test: classad's

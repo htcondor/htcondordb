@@ -9,7 +9,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 // tableIndexSet is a schedd-sync table's built-in index set: the indexes the table needs for the

@@ -12,7 +12,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/db/replicate"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/cedarsync"
 )
 
 // archiveSink replicates one spoke's archive (history, epoch_history, job_metrics) into the hub's

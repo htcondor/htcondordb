@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/htcondordb/dbstatus"
+	"github.com/htcondor/htcondordb/dbstatus"
 )
 
 // TestSyncStatusCommandIntegration is the end-to-end check on DBSyncStatus: a real daemon process

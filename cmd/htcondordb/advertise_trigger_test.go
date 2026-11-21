@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 func jobStatus(caughtUp bool) []scheddsync.SyncStatus {

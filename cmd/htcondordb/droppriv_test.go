@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/golang-htcondor/daemon"
-	"github.com/bbockelm/golang-htcondor/logging"
+	"github.com/htcondor/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/daemon"
+	"github.com/htcondor/golang-htcondor/logging"
 )
 
 // TestDaemonDropsPrivilege is the run-as-root integration test for privilege drop: started

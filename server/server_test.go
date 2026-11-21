@@ -6,7 +6,7 @@ import (
 	"github.com/bbockelm/cedar/security"
 	cedarserver "github.com/bbockelm/cedar/server"
 
-	"github.com/bbockelm/htcondordb/command"
+	"github.com/htcondor/htcondordb/command"
 )
 
 // TestServeOptionsFor locks the level -> (read-only, private) mapping that is the

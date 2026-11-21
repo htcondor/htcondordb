@@ -221,8 +221,8 @@ the main module.
 already uses in this repo:
 
 ```
-require github.com/bbockelm/htcondordb v0.0.0
-replace github.com/bbockelm/htcondordb => ../
+require github.com/htcondor/htcondordb v0.0.0
+replace github.com/htcondor/htcondordb => ../
 ```
 
 Vendoring was rejected because duplicated format code drifts, and the two sides

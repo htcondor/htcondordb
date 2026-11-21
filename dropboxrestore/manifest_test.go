@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bbockelm/htcondordb/dropboxmanifest"
+	"github.com/htcondor/htcondordb/dropboxmanifest"
 )
 
 // manifestFor writes a correct manifest beside an existing batch, the way the exporter does.

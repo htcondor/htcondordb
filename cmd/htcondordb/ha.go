@@ -11,19 +11,19 @@ import (
 	"github.com/bbockelm/cedar/message"
 	cedarserver "github.com/bbockelm/cedar/server"
 	"github.com/bbockelm/cedar/stream"
-	htcondor "github.com/bbockelm/golang-htcondor"
-	"github.com/bbockelm/golang-htcondor/config"
-	"github.com/bbockelm/golang-htcondor/daemon"
-	"github.com/bbockelm/golang-htcondor/logging"
+	htcondor "github.com/htcondor/golang-htcondor"
+	"github.com/htcondor/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/daemon"
+	"github.com/htcondor/golang-htcondor/logging"
 	"github.com/hashicorp/raft"
 
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/dbpeer"
-	"github.com/bbockelm/htcondordb/ha/consistent"
-	"github.com/bbockelm/htcondordb/ha/leaderfollower"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/dbpeer"
+	"github.com/htcondor/htcondordb/ha/consistent"
+	"github.com/htcondor/htcondordb/ha/leaderfollower"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // HA modes (HTCONDORDB_HA_MODE).

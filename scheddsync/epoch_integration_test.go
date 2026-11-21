@@ -10,7 +10,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
-	htcondor "github.com/bbockelm/golang-htcondor"
+	htcondor "github.com/htcondor/golang-htcondor"
 )
 
 // TestJobEpochSyncIntegration runs a job to completion on a real schedd with epoch

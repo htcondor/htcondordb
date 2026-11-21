@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // The plugin ships dashboards as JSON (src/dashboards, bundled via plugin.json includes). Their

@@ -9,8 +9,8 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // colTypeFixture is a real store behind a real executor, because what is being tested is a

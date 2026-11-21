@@ -16,7 +16,7 @@ description: |
   read history without walking the schedd's files. Runs as a DaemonCore
   daemon under condor_master.
 vendor: ${PKG_VENDOR}
-homepage: https://github.com/bbockelm/htcondordb
+homepage: https://github.com/htcondor/htcondordb
 license: Apache-2.0
 
 depends:

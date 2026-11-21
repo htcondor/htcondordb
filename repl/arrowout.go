@@ -8,7 +8,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // Arrow as a REPL output format.

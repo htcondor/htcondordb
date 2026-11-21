@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/cedarsync"
 )
 
 // TestSourceRowVolatileFieldsCoarse: federation_sources is rewritten when a source's state changes,

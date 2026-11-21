@@ -32,7 +32,7 @@ compile.
 
 ```sh
 VER=v0.20.0
-gh release download "$VER" --repo bbockelm/htcondordb \
+gh release download "$VER" --repo htcondor/htcondordb \
     -p 'bbockelm-htcondordb-datasource_*.zip' -p SHA256SUMS.txt
 shasum -a 256 -c SHA256SUMS.txt --ignore-missing
 ```

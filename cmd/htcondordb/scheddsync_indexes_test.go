@@ -16,7 +16,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // TestIndexAdditions pins the reconciliation's rules: add what is missing under the wanted kind,

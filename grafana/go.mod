@@ -1,4 +1,4 @@
-module github.com/bbockelm/htcondordb/grafana
+module github.com/htcondor/htcondordb/grafana
 
 go 1.26.5
 
@@ -11,10 +11,10 @@ require (
 	github.com/PelicanPlatform/classad v0.43.0
 	github.com/PelicanPlatform/classad/dbrpc v0.43.0
 	github.com/apache/arrow-go/v18 v18.8.0
-	github.com/bbockelm/cedar v0.7.14
-	github.com/bbockelm/golang-htcondor v0.22.1
-	github.com/bbockelm/htcondordb v0.0.0
+	github.com/bbockelm/cedar v0.7.15
 	github.com/grafana/grafana-plugin-sdk-go v0.298.0
+	github.com/htcondor/golang-htcondor v0.25.0
+	github.com/htcondor/htcondordb v0.0.0
 )
 
 require (
@@ -103,11 +103,11 @@ require (
 	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.1 // indirect
-	golang.org/x/crypto v0.58.0 // indirect
+	golang.org/x/crypto v0.59.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc // indirect
@@ -117,4 +117,4 @@ require (
 )
 
 // The plugin lives inside the htcondordb repo and reuses its repl SQL engine.
-replace github.com/bbockelm/htcondordb => ../
+replace github.com/htcondor/htcondordb => ../

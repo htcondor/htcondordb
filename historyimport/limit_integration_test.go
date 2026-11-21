@@ -9,7 +9,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
-	htcondor "github.com/bbockelm/golang-htcondor"
+	htcondor "github.com/htcondor/golang-htcondor"
 )
 
 // recordsForLimitTest is comfortably above the history client's interactive

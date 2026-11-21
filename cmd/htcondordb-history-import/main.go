@@ -29,12 +29,12 @@ import (
 	"github.com/PelicanPlatform/classad/dbrpc"
 	cedarclient "github.com/bbockelm/cedar/client"
 	"github.com/bbockelm/cedar/security"
-	htcondor "github.com/bbockelm/golang-htcondor"
-	"github.com/bbockelm/golang-htcondor/config"
+	htcondor "github.com/htcondor/golang-htcondor"
+	"github.com/htcondor/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/dbpeer"
-	"github.com/bbockelm/htcondordb/historyimport"
-	"github.com/bbockelm/htcondordb/locate"
+	"github.com/htcondor/htcondordb/dbpeer"
+	"github.com/htcondor/htcondordb/historyimport"
+	"github.com/htcondor/htcondordb/locate"
 )
 
 // dbSessionCommand is the CEDAR command for htcondordb's multiplexed dbrpc

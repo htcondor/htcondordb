@@ -9,9 +9,9 @@ import (
 	"github.com/bbockelm/cedar/message"
 	cedarserver "github.com/bbockelm/cedar/server"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/server"
-	"github.com/bbockelm/htcondordb/userfunc"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/server"
+	"github.com/htcondor/htcondordb/userfunc"
 )
 
 // ownerUserFunctions is the in-process writer that owns the stored-function table.

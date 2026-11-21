@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bbockelm/golang-htcondor/logging"
+	"github.com/htcondor/golang-htcondor/logging"
 )
 
 // closeProgressEvery is how often a close that is still running reports itself. The same cadence

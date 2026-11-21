@@ -3,7 +3,7 @@ package arrowtype
 import (
 	"github.com/apache/arrow-go/v18/arrow"
 
-	"github.com/bbockelm/htcondordb/ansi"
+	"github.com/htcondor/htcondordb/ansi"
 )
 
 // Columns exposes a derivation's decisions as SQL column kinds, for lowering an ANSI predicate.

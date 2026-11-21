@@ -12,9 +12,9 @@ import (
 	"github.com/PelicanPlatform/classad/db/replicate"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
-	"github.com/bbockelm/htcondordb/scheddsync"
-	"github.com/bbockelm/htcondordb/syncstatus"
+	"github.com/htcondor/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/syncstatus"
 )
 
 // fakeDiscovery returns whatever snapshot the test last set.

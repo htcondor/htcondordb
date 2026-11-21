@@ -13,7 +13,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // hubCfg is a hub with one unreachable static spoke.

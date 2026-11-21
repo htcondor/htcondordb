@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/bbockelm/golang-htcondor/logging"
+	"github.com/htcondor/golang-htcondor/logging"
 )
 
 // TestArchiveIndexBackfillBudget pins the translation from HTCondor config to the library's

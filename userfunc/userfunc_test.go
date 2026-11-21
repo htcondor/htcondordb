@@ -11,7 +11,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/db"
-	config "github.com/bbockelm/golang-htcondor/config"
+	config "github.com/htcondor/golang-htcondor/config"
 )
 
 // classad's function and aggregate registries are process-global and have no unregister, so every

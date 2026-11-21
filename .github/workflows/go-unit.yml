@@ -52,7 +52,7 @@ jobs:
             goexperiment: ''
     env:
       GOFLAGS: -mod=mod
-      GOPRIVATE: github.com/bbockelm,github.com/PelicanPlatform
+      GOPRIVATE: github.com/bbockelm,github.com/htcondor,github.com/PelicanPlatform
       GOEXPERIMENT: ${{ matrix.goexperiment }}
     steps:
       - name: Checkout htcondordb
@@ -66,7 +66,7 @@ jobs:
         with: { repository: bbockelm/cedar, path: golang-cedar }
       - name: Checkout golang-htcondor
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { repository: bbockelm/golang-htcondor, path: golang-htcondor }
+        with: { repository: htcondor/golang-htcondor, path: golang-htcondor }
 
       - name: Set up Go
         uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0

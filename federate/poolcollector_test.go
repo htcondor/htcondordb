@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/PelicanPlatform/classad/classad"
-	htcondor "github.com/bbockelm/golang-htcondor"
+	htcondor "github.com/htcondor/golang-htcondor"
 )
 
 // capCollector behaves like the collector client: Limit 0 means its default of 50 ads, a negative

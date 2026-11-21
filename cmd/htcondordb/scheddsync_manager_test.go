@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/db"
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // mkSyncCfg builds a config from body alone, with SkipDefaults so HTCondor's baked-in

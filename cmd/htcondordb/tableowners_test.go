@@ -18,9 +18,9 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/repl"
-	"github.com/bbockelm/htcondordb/scheddsync"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/repl"
+	"github.com/htcondor/htcondordb/scheddsync"
+	"github.com/htcondor/htcondordb/server"
 )
 
 func newOwnerTestService(t *testing.T) *server.Service {

@@ -12,7 +12,7 @@ import (
 
 	"github.com/apache/arrow-go/v18/arrow"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/arrowtype"
 )
 
 // What the endpoint has settled on for a table's columns, so the schema stops moving on a whim.

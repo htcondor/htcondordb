@@ -13,8 +13,8 @@ import (
 	cedarserver "github.com/bbockelm/cedar/server"
 	"github.com/dustin/go-humanize"
 
-	"github.com/bbockelm/htcondordb/command"
-	"github.com/bbockelm/htcondordb/server"
+	"github.com/htcondor/htcondordb/command"
+	"github.com/htcondor/htcondordb/server"
 )
 
 // syncController answers DBSyncControl requests: administrative control of the daemon's sync

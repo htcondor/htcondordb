@@ -7,8 +7,8 @@ import (
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 
-	"github.com/bbockelm/htcondordb/arrowtype"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/arrowtype"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 func typedDecision(name string, dt arrow.DataType) arrowtype.Decision {

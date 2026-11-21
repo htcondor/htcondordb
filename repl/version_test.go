@@ -34,7 +34,7 @@ func TestVersionReportsTheStack(t *testing.T) {
 	}
 	// A test binary is a module build, so the module line is present
 	// even though its version is the "(devel)" placeholder.
-	if !strings.Contains(got, "github.com/bbockelm/htcondordb") {
+	if !strings.Contains(got, "github.com/htcondor/htcondordb") {
 		t.Errorf("main module missing:\n%s", got)
 	}
 	t.Logf("\n%s", got)
@@ -53,11 +53,11 @@ func TestVersionReportsRealComponents(t *testing.T) {
 
 	var out bytes.Buffer
 	writeVersion(&out, &debug.BuildInfo{
-		Main: debug.Module{Path: "github.com/bbockelm/htcondordb", Version: "v0.18.6"},
+		Main: debug.Module{Path: "github.com/htcondor/htcondordb", Version: "v0.18.6"},
 		Deps: []*debug.Module{
 			{Path: "github.com/PelicanPlatform/classad", Version: "v0.29.7"},
 			{Path: "github.com/bbockelm/cedar", Version: "v0.6.11"},
-			{Path: "github.com/bbockelm/golang-htcondor", Version: "v0.12.10"},
+			{Path: "github.com/htcondor/golang-htcondor", Version: "v0.12.10"},
 			{Path: "github.com/some/unrelated", Version: "v1.0.0"},
 		},
 		Settings: []debug.BuildSetting{
@@ -91,9 +91,9 @@ func TestVersionReportsRealComponents(t *testing.T) {
 func TestVersionShowsAReplacedComponent(t *testing.T) {
 	var out bytes.Buffer
 	writeVersion(&out, &debug.BuildInfo{
-		Main: debug.Module{Path: "github.com/bbockelm/htcondordb", Version: "(devel)"},
+		Main: debug.Module{Path: "github.com/htcondor/htcondordb", Version: "(devel)"},
 		Deps: []*debug.Module{{
-			Path:    "github.com/bbockelm/golang-htcondor",
+			Path:    "github.com/htcondor/golang-htcondor",
 			Version: "v0.12.10",
 			Replace: &debug.Module{Path: "/home/me/golang-htcondor", Version: "(devel)"},
 		}},
@@ -104,7 +104,7 @@ func TestVersionShowsAReplacedComponent(t *testing.T) {
 		t.Errorf("a replaced module is reported as if it were a release:\n%s", got)
 	}
 	// The main module's placeholder must not be printed as a version.
-	if strings.Contains(got, "module        github.com/bbockelm/htcondordb (devel)") {
+	if strings.Contains(got, "module        github.com/htcondor/htcondordb (devel)") {
 		t.Errorf("placeholder printed as a version:\n%s", got)
 	}
 }

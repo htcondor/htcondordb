@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/PelicanPlatform/classad/classad"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // adCursor bridges repl's push-shaped stream to the C side's pull-shaped next().

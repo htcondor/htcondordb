@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 
-	"github.com/bbockelm/htcondordb/grafana/pkg/plugin"
+	"github.com/htcondor/htcondordb/grafana/pkg/plugin"
 )
 
 // pluginID must match the "id" in src/plugin.json.

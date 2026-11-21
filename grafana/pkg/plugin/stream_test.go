@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/PelicanPlatform/classad/classad"
-	"github.com/bbockelm/htcondordb/watchfeed"
+	"github.com/htcondor/htcondordb/watchfeed"
 )
 
 func TestStreamPathRoundTrip(t *testing.T) {

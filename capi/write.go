@@ -16,7 +16,7 @@ import "C"
 import (
 	"encoding/json"
 
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // adWriteRequest is the JSON a caller passes: the table and the ads, each with its key and

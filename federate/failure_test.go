@@ -10,7 +10,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/db/replicate"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/cedarsync"
 )
 
 // TestFailedCommitThenFlushKeepsCursor: a batch whose commit fails is dropped, so the cursor of its

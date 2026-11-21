@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bbockelm/htcondordb/bench"
+	"github.com/htcondor/htcondordb/bench"
 )
 
 // Benchmark mode: a throwaway server on scratch, for comparing deployments.

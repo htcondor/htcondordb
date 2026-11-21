@@ -7,7 +7,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/htcondordb/repl"
+	"github.com/htcondor/htcondordb/repl"
 )
 
 // distinctFixture is three ads chosen so a DISTINCT has something to de-duplicate, something

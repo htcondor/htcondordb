@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/PelicanPlatform/classad/classad"
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 )
 
 // mirroredSchedd is what a spoke says about the schedd its schedd-sync mirrors: the schedd's Name,

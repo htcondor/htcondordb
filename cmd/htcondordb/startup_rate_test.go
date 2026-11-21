@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/collections"
-	"github.com/bbockelm/golang-htcondor/logging"
+	"github.com/htcondor/golang-htcondor/logging"
 )
 
 // timerWithEntries builds a timer whose catalog scan has already run over dir, so the progress

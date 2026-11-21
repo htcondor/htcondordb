@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bbockelm/golang-htcondor/config"
+	"github.com/htcondor/golang-htcondor/config"
 
-	"github.com/bbockelm/htcondordb/historyimport"
+	"github.com/htcondor/htcondordb/historyimport"
 )
 
 func quietManager() *importerManager {

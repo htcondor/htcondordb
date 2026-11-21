@@ -11,7 +11,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
 
-	"github.com/bbockelm/htcondordb/cedarsync"
+	"github.com/htcondor/htcondordb/cedarsync"
 )
 
 // TestStaticFlagFollowsConfig: a source's Static flag is the current configuration's, refreshed on

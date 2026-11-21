@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/db"
-	"github.com/bbockelm/htcondordb/watchfeed"
+	"github.com/htcondor/htcondordb/watchfeed"
 )
 
 // Watch event kinds on the wire (dbrpc.WatchEvent.Kind).

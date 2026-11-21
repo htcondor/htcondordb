@@ -11,7 +11,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
-	htcondor "github.com/bbockelm/golang-htcondor"
+	htcondor "github.com/htcondor/golang-htcondor"
 )
 
 // secondScheddConfig adds a second schedd instance to the personal-condor harness

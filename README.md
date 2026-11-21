@@ -11,13 +11,13 @@ SQL-like statements — no polling `condor_q` / `condor_history`.
 
 ## Install
 
-Each [release](https://github.com/bbockelm/htcondordb/releases/latest) carries
+Each [release](https://github.com/htcondor/htcondordb/releases/latest) carries
 an RPM for x86_64 and aarch64. Install HTCondor first (the package depends on
 `condor`), then install the RPM for the release you want:
 
 ```sh
 VERSION=0.21.3   # the latest version is on the releases page
-sudo dnf install https://github.com/bbockelm/htcondordb/releases/download/v${VERSION}/htcondordb-${VERSION}-1.$(uname -m).rpm
+sudo dnf install https://github.com/htcondor/htcondordb/releases/download/v${VERSION}/htcondordb-${VERSION}-1.$(uname -m).rpm
 ```
 
 The package installs:
@@ -190,7 +190,7 @@ htcondordb is built on:
 
 - `github.com/PelicanPlatform/classad/db` — the embedded ClassAd log.
 - `github.com/PelicanPlatform/classad/dbrpc` — the client/server RPC over CEDAR.
-- `github.com/bbockelm/golang-htcondor` — config, security policy, DaemonCore
+- `github.com/htcondor/golang-htcondor` — config, security policy, DaemonCore
   integration (running under `condor_master`, ready/keepalive pings, privilege
   drop, SIGHUP reconfigure).
 - `github.com/bbockelm/cedar` — authenticated, encrypted transport.

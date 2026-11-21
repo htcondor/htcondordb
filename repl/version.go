@@ -36,7 +36,7 @@ var versionComponents = []struct {
 	label string
 	path  string
 }{
-	{"golang-htcondor", "github.com/bbockelm/golang-htcondor"},
+	{"golang-htcondor", "github.com/htcondor/golang-htcondor"},
 	{"classad", "github.com/PelicanPlatform/classad"},
 	{"cedar", "github.com/bbockelm/cedar"},
 }

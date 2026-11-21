@@ -9,7 +9,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 
-	"github.com/bbockelm/htcondordb/dropboxmanifest"
+	"github.com/htcondor/htcondordb/dropboxmanifest"
 )
 
 // Writer is the subset of historyimport.Writer a restore needs: append a record, and ask whether
