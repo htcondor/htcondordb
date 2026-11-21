@@ -12,8 +12,8 @@ require (
 	github.com/PelicanPlatform/classad v0.43.0
 	github.com/PelicanPlatform/classad/db v0.43.0
 	github.com/PelicanPlatform/classad/dbrpc v0.43.0
-	github.com/bbockelm/cedar v0.7.14
-	github.com/bbockelm/golang-htcondor v0.22.1
+	github.com/bbockelm/cedar v0.7.15
+	github.com/bbockelm/golang-htcondor v0.24.0
 	github.com/bbockelm/htcondordb v0.0.0
 )
 
@@ -32,12 +32,12 @@ require (
 	github.com/jcmturner/gofork v1.7.6 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
-	github.com/klauspost/compress v1.20.1 // indirect
+	github.com/klauspost/compress v1.20.3 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tidwall/btree v1.8.1 // indirect
-	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/crypto v0.59.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 )
