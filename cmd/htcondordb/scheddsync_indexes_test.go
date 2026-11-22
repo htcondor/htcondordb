@@ -423,4 +423,58 @@ func TestIdempotencyProbeIsIndexed(t *testing.T) {
 		t.Errorf("a bare =?= planned as %q; the second term in IdempotencyConstraint is "+
 			"no longer needed", ex3.Plan)
 	}
+
+	// The OWNER-SCOPED shape, which is what the golang-htcondor API server actually
+	// sends. Its keys are per account, so webapi/idempotency ANDs this expression onto an
+	// `Owner == ...` clause, and the result is a different expression than the one above:
+	//
+	//	(Owner == "u0") && (IdempotencyKey == "k" && IdempotencyKey =?= "k")
+	//
+	// Both attributes are categorically indexed here, so the planner has two it could use
+	// and nothing says it must use either. It is asserted because the claim that this
+	// index earns its cost is made in webapi's own comments, in a module that cannot
+	// import this one -- so this test is the only place the claim is checked, for either
+	// caller.
+	scoped := fmt.Sprintf(`(Owner == %q) && (%s)`, "u0",
+		scheddsync.IdempotencyConstraint(scheddsync.IdempotencyKeyAttr, "submission-0300"))
+	exScoped, errScoped := hist.Explain(scoped)
+	if errScoped != nil {
+		t.Fatalf("Explain(%s): %v", scoped, errScoped)
+	}
+	if exScoped.Plan != "indexed" {
+		t.Errorf("the owner-scoped probe plans as %q, want \"indexed\"; the API server's "+
+			"keyed submissions are scanning the history\nprobe: %s", exScoped.Plan, scoped)
+	}
+	if exScoped.UnindexedSegments != 0 {
+		t.Errorf("the owner-scoped probe leaves %d segment(s) unindexed", exScoped.UnindexedSegments)
+	}
+
+	// And it finds the one record it should. An "indexed" plan for a probe that matches
+	// nothing would be a vacuous pass -- and a probe built wrongly (the owner clause
+	// naming an account that holds no such key, say) matches nothing while still planning
+	// through the index.
+	for _, probe := range []struct {
+		name string
+		expr string
+		want int
+	}{
+		{"owner-scoped", scoped, 1},
+		{"unscoped", scheddsync.IdempotencyConstraint(scheddsync.IdempotencyKeyAttr, "submission-0300"), 1},
+		{"wrong owner", fmt.Sprintf(`(Owner == %q) && (%s)`, "u1",
+			scheddsync.IdempotencyConstraint(scheddsync.IdempotencyKeyAttr, "submission-0300")), 0},
+		{"wrong case", scheddsync.IdempotencyConstraint(scheddsync.IdempotencyKeyAttr, "SUBMISSION-0300"), 0},
+	} {
+		seq, err := hist.Query(probe.expr)
+		if err != nil {
+			t.Errorf("%s: Query(%s): %v", probe.name, probe.expr, err)
+			continue
+		}
+		got := 0
+		for range seq {
+			got++
+		}
+		if got != probe.want {
+			t.Errorf("%s probe matched %d records, want %d\nprobe: %s", probe.name, got, probe.want, probe.expr)
+		}
+	}
 }
