@@ -32,6 +32,13 @@ import (
 // REPL can address the row for UPDATE/DELETE (its default key attribute is "Key").
 const KeyAttr = "Key"
 
+// IdempotencyKeyAttr is the job attribute carrying a submission's idempotency key. The
+// schedd sets it on the cluster ad, so chaining puts it on every proc row of the live queue
+// and sPrintAd flattens it into every history record -- one attribute name covers both
+// tables, and a lookup for a key need not know whether it was a cluster or a proc that
+// declared it.
+const IdempotencyKeyAttr = "IdempotencyKey"
+
 // DefaultPollInterval is how often job_queue.log is polled when unset -- and, with the idle
 // backoff, how fast it returns to polling once the log moves.
 const DefaultPollInterval = 200 * time.Millisecond

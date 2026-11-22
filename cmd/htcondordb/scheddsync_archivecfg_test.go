@@ -33,9 +33,9 @@ func TestArchiveConfigDefaults(t *testing.T) {
 		cat, val       []string
 		wantCat, wantV []string
 	}{
-		{"history", nil, nil, []string{"Owner"}, []string{"ClusterId", "ProcId", "JobStatus", "CompletionDate", "QDate"}},
+		{"history", nil, nil, []string{"Owner", "IdempotencyKey"}, []string{"ClusterId", "ProcId", "JobStatus", "CompletionDate", "QDate"}},
 		{"epoch_history", nil, nil, []string{"Owner"}, []string{"ClusterId", "ProcId"}},
-		{"jobs", nil, nil, []string{"Owner"}, []string{"ClusterId", "JobStatus", "EnteredCurrentStatus"}},
+		{"jobs", nil, nil, []string{"Owner", "IdempotencyKey"}, []string{"ClusterId", "JobStatus", "EnteredCurrentStatus"}},
 	} {
 		var c, v []string
 		switch tc.table {
@@ -60,7 +60,7 @@ func TestArchiveIndexKnobsAdd(t *testing.T) {
 		"HTCONDORDB_ARCHIVE_CATEGORICAL_ATTRS = AccountingGroup, JobStatus\n"+
 		"HTCONDORDB_ARCHIVE_VALUE_ATTRS = RequestMemory\n"))
 	c, v := s.historyIndexSet()
-	if want := []string{"Owner", "AccountingGroup", "JobStatus"}; !slices.Equal(c, want) {
+	if want := []string{"Owner", "IdempotencyKey", "AccountingGroup", "JobStatus"}; !slices.Equal(c, want) {
 		t.Errorf("history categorical = %v, want %v", c, want)
 	}
 	if want := []string{"ClusterId", "ProcId", "CompletionDate", "QDate", "RequestMemory"}; !slices.Equal(v, want) {
