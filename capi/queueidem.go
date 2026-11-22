@@ -33,8 +33,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PelicanPlatform/classad/ast"
 	"github.com/PelicanPlatform/classad/classad"
+
+	"github.com/htcondor/htcondordb/scheddsync"
 )
 
 // What hcdb_queue_lookup_key returns, alongside hcdbErr for an answer it could not
@@ -193,19 +194,18 @@ func idemHistoryBound(cons string, windowSeconds int64, now time.Time) string {
 	return fmt.Sprintf("(%s) && %s >= %d", cons, attrEnteredHistoryTime, floor)
 }
 
-// idemConstraint builds the lookup's constraint, and is the only place a caller's text
-// reaches an expression the server will parse.
+// idemConstraint validates the caller's text and hands it to the shared expression
+// builder. This is the only place a caller's text reaches an expression the server parses.
 //
-// The key is quoted as a ClassAd string literal, so a key containing a quote, a
-// backslash or a newline compares as those characters rather than closing the literal
-// and continuing the expression. The attribute NAME cannot be quoted -- it has to
-// appear as an identifier -- so it is validated instead, against the identifier shape
-// rather than against a blocklist.
+// The key is quoted there as a ClassAd string literal, so a key containing a quote, a
+// backslash or a newline compares as those characters rather than closing the literal and
+// continuing the expression. The attribute NAME cannot be quoted -- it has to appear as an
+// identifier -- so it is validated here instead, against the identifier shape rather than
+// against a blocklist.
 //
-// The comparison is =?=, not ==. ClassAd's == on strings folds case, and two keys that
-// differ only in case are different keys: a caller that chose "Batch-7" has not used up
-// "batch-7". =?= is also what the categorical index's exact-case run answers, so the
-// strict comparison is the indexed one as well as the correct one.
+// Why the expression has two comparisons, and why it is built in scheddsync rather than
+// spelled out here, is in scheddsync.IdempotencyConstraint. The short of it: =?= is the
+// comparison this wants and the one the planner will not serve from an index.
 func idemConstraint(attr, key string) (string, error) {
 	if !isPlainAttrName(attr) {
 		return "", fmt.Errorf("%q is not a usable attribute name", attr)
@@ -216,7 +216,7 @@ func idemConstraint(attr, key string) (string, error) {
 	if len(key) > idemMaxKeyLen {
 		return "", fmt.Errorf("the key is %d bytes, over the %d-byte limit", len(key), idemMaxKeyLen)
 	}
-	return attr + " =?= " + ast.QuoteString(key), nil
+	return scheddsync.IdempotencyConstraint(attr, key), nil
 }
 
 // isPlainAttrName reports whether name is an unadorned ClassAd attribute name: a letter

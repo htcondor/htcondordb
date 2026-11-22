@@ -187,9 +187,16 @@ func TestIdemHistoryBound(t *testing.T) {
 	}
 
 	got := idemHistoryBound(cons, 3600, now)
-	want := `(IdempotencyKey =?= "k") && EnteredHistoryTime >= 1799996400`
+	want := "(" + cons + ") && EnteredHistoryTime >= 1799996400"
 	if got != want {
 		t.Errorf("bounded constraint = %q, want %q", got, want)
+	}
+	// The parenthesising is load-bearing: the key constraint is itself an &&, so without
+	// the brackets the window would bind to its last term only and the first would be left
+	// outside the bound. Built from cons rather than spelled out, so a change to the key
+	// constraint's shape cannot quietly leave this test asserting the old one.
+	if !strings.HasPrefix(got, "("+cons+")") {
+		t.Errorf("the key constraint is not bracketed inside the bounded one: %q", got)
 	}
 
 	// It must still be one parseable expression, and it must still select on the key:

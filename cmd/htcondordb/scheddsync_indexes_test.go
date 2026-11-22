@@ -16,6 +16,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 
+	"github.com/htcondor/htcondordb/scheddsync"
 	"github.com/htcondor/htcondordb/server"
 )
 
@@ -347,5 +348,79 @@ func TestEpochSchemaRequireDefaults(t *testing.T) {
 	s, _ = resolveScheddSyncSettings(mkSyncCfg(t, syncOn+"HTCONDORDB_SCHEMA_REQUIRE_ATTRS = none\n"))
 	if s.epochSchemaRequireAttrs != "" {
 		t.Errorf("`none` left epoch_history requiring %q", s.epochSchemaRequireAttrs)
+	}
+}
+
+/*
+ * TestIdempotencyProbeIsIndexed: the submission-idempotency lookup resolves from the
+ * sidecar index rather than by reading records.
+ *
+ * This is the assertion the built-in index exists to satisfy, and nothing else checks it.
+ * The lookup is correct either way -- a full scan returns the same answer -- so a planner
+ * that quietly stopped using the index would cost a scan of the entire job history on
+ * every submission carrying a key, and every other test would still pass. The cost of
+ * this index is the whole reason it was argued over; a test that it is actually used is
+ * what makes that cost buy something.
+ */
+func TestIdempotencyProbeIsIndexed(t *testing.T) {
+	cat, err := db.OpenCatalog(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = cat.Close() }()
+
+	s, _ := resolveScheddSyncSettings(mkSyncCfg(t, syncOn))
+	histCat, histVal := s.historyIndexSet()
+	hist, err := cat.CreateArchiveTable("history", db.ArchiveConfig{
+		SegmentSize: 1 << 12, CategoricalAttrs: histCat, ValueAttrs: histVal,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Enough records, each with its own key, to seal several segments -- an index lives in
+	// a sealed segment's sidecar, so a handful of records in the active tail would plan as
+	// a scan however the table was configured.
+	const n = 600
+	for i := 0; i < n; i++ {
+		if err := hist.AppendOld(fmt.Sprintf(
+			"ClusterId = %d\nProcId = 0\nOwner = \"u%d\"\nJobStatus = 4\nQDate = %d\nCompletionDate = %d\n%s = \"submission-%04d\"",
+			i, i%5, 1000+i, 2000+i, scheddsync.IdempotencyKeyAttr, i)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	hist.Reindex()
+
+	// The expression the lookup actually issues, from the builder that ships it -- not a
+	// copy. A copy would have gone on passing while the real one reverted to the bare =?=
+	// that plans as a scan, which is the mistake this test exists to catch.
+	probe := scheddsync.IdempotencyConstraint(scheddsync.IdempotencyKeyAttr, "submission-0300")
+	ex, err := hist.Explain(probe)
+	if err != nil {
+		t.Fatalf("Explain(%s): %v", probe, err)
+	}
+	if ex.Plan != "indexed" {
+		t.Errorf("plan = %q, want \"indexed\"; the key lookup is reading records instead "+
+			"of its index, so every keyed submission scans the history", ex.Plan)
+	}
+	if ex.UnindexedSegments != 0 {
+		t.Errorf("%d segment(s) carry no index on the key and are scanned in full",
+			ex.UnindexedSegments)
+	}
+
+	// Two controls, because "indexed" means nothing unless something else comes back
+	// unindexed. An attribute the table does not index:
+	if ex2, err2 := hist.Explain(`Arguments =?= "nothing"`); err2 == nil && ex2.Plan == "indexed" {
+		t.Errorf("an unindexed attribute also planned as %q, so the plan does not "+
+			"discriminate", ex2.Plan)
+	}
+	// And the bare =?= on the indexed attribute, which is the form the constraint used to
+	// be. It reads every record despite the index, and that is precisely why the shipped
+	// expression pairs it with a folded ==. If this ever plans as indexed, the planner has
+	// gained a capability and IdempotencyConstraint can lose a term.
+	bare := fmt.Sprintf("%s =?= %q", scheddsync.IdempotencyKeyAttr, "submission-0300")
+	if ex3, err3 := hist.Explain(bare); err3 == nil && ex3.Plan == "indexed" {
+		t.Errorf("a bare =?= planned as %q; the second term in IdempotencyConstraint is "+
+			"no longer needed", ex3.Plan)
 	}
 }
