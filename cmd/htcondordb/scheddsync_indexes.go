@@ -55,8 +55,22 @@ var (
 	// htcondordb stamps it at ingest, so it increases with append order and its zone map already
 	// resolves any range to exactly the segments holding it. A value index would add ~32 B per
 	// record to narrow within the one or two boundary segments.
+	//
+	// IdempotencyKey (categorical) is the one entry here that serves a WRITE rather than a read.
+	// A schedd enforcing submission idempotency asks this table, once per submit carrying a key,
+	// whether any job ever held it -- an equality probe with no other predicate to narrow it. The
+	// read is rare, but it is on the submit path and the alternative is a full archive scan, which
+	// is why demand-driven auto-indexing cannot be what provides it: the first submits would each
+	// pay a scan of the whole history, and the index they eventually earned would reach back only
+	// as far as the backfill horizon, leaving older segments scanned forever.
+	//
+	// It is also the cheapest entry in the set on a pool that does not use the feature. An
+	// attribute no record defines posts no key and lands in no bitmap -- absence is derived from
+	// the segment's `all` bitmap -- so the sidecar grows only with the jobs that actually carry a
+	// key, at roughly 2x the key's bytes each (the exact-case run holds a second copy, which is
+	// what answers the =?= the lookup issues). Sites that never set one pay nothing.
 	historyIndexes = tableIndexSet{
-		categorical: []string{"Owner"},
+		categorical: []string{"Owner", scheddsync.IdempotencyKeyAttr},
 		value:       []string{"ClusterId", "ProcId", "JobStatus", "CompletionDate", "QDate"},
 	}
 
@@ -82,12 +96,17 @@ var (
 	//   - JobStatus (value): every status tile drill-down and the held/completed filters.
 	//   - EnteredCurrentStatus (value): the recent-activity and issues reads all bound it.
 	//
+	//   - IdempotencyKey (categorical): the live half of the submission-idempotency lookup, for
+	//     the same reason it is in historyIndexes, and sparse in the same way. A schedd checks
+	//     its own queue from memory and does not need this; a schedd pointed at a mirror of a
+	//     DIFFERENT access point has no such memory and this is the only index that answers it.
+	//
 	// The other recent-activity bounds (QDate, JobCurrentStartDate, CompletionDate) and the rarer
 	// equality filters (HoldReasonCode, always ANDed with JobStatus == 5; DAGManJobId) are left to
 	// the auto-tuner. On a mutable table that is enough: its threshold is low and, unlike an
 	// archive, an index it adds covers every record.
 	jobsIndexes = tableIndexSet{
-		categorical: []string{"Owner"},
+		categorical: []string{"Owner", scheddsync.IdempotencyKeyAttr},
 		value:       []string{"ClusterId", "JobStatus", "EnteredCurrentStatus"},
 	}
 )
