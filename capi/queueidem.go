@@ -131,7 +131,8 @@ func hcdb_queue_lookup_keyImpl(h C.uintptr_t, attr, key, history_table *C.char, 
 		return hcdbErr
 	}
 	if len(rows) > 0 {
-		*found = C.CString("queue " + idemJobID(rows[0]))
+		// A projected row comes back in old-ClassAd form.
+		*found = C.CString("queue " + idemJobID(rows[0], true))
 		return hcdbIdemPresent
 	}
 
@@ -143,7 +144,10 @@ func hcdb_queue_lookup_keyImpl(h C.uintptr_t, attr, key, history_table *C.char, 
 		return hcdbErr
 	}
 	if len(hrows) > 0 {
-		*found = C.CString("history " + idemJobID(hrows[0]))
+		// An archive row comes back in new-ClassAd form, unlike the projected row
+		// above. The two query ops serialize differently, and reading one with the
+		// other's parser yields no attributes and no error worth the name.
+		*found = C.CString("history " + idemJobID(hrows[0], false))
 		return hcdbIdemPresent
 	}
 
@@ -241,12 +245,22 @@ func isPlainAttrName(name string) bool {
 // idemJobID renders the "<cluster>.<proc>" of a matched row, or "?" when the row cannot
 // be read as one.
 //
+// oldFormat picks the parser, and the caller has to know which: a projected row from the
+// ordinary query op arrives as old-ClassAd "Attr = Value" lines, while an archive row
+// arrives as a new-ClassAd "[ Attr = Value; ... ]". Each parser reads the other's output
+// as an ad with nothing in it, so getting this wrong does not raise an error -- it just
+// renders every job as "?".
+//
 // A row that matched but will not parse is still a match: the key IS in use, and the
 // caller's decision does not depend on which job holds it. So this never fails the
 // lookup -- it degrades the identification, which is a detail of the message, and
 // leaves the verdict alone.
-func idemJobID(text string) string {
-	ad, perr := classad.ParseOld(text)
+func idemJobID(text string, oldFormat bool) string {
+	parse := classad.Parse
+	if oldFormat {
+		parse = classad.ParseOld
+	}
+	ad, perr := parse(text)
 	if perr != nil || ad == nil {
 		return "?"
 	}

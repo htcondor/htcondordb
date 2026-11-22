@@ -128,17 +128,49 @@ func TestIdemConstraintBoundsTheKey(t *testing.T) {
 // idemJobID names the job that holds the key, and degrades rather than failing: a row that
 // matched is a match whether or not its identity can be read out of it.
 func TestIdemJobID(t *testing.T) {
-	for _, tc := range []struct{ name, text, want string }{
-		{"proc row", "ClusterId = 42\nProcId = 7\n", "42.7"},
-		{"proc zero", "ClusterId = 42\nProcId = 0\n", "42.0"},
-		{"cluster only", "ClusterId = 42\n", "42"},
-		{"no cluster", "ProcId = 7\n", "?"},
-		{"unparsable", "this is not an ad {{{", "?"},
-		{"empty", "", "?"},
+	for _, tc := range []struct {
+		name, text string
+		oldFormat  bool
+		want       string
+	}{
+		{"projected proc row", "ClusterId = 42\nProcId = 7\n", true, "42.7"},
+		{"projected proc zero", "ClusterId = 42\nProcId = 0\n", true, "42.0"},
+		{"projected cluster only", "ClusterId = 42\n", true, "42"},
+		{"projected no cluster", "ProcId = 7\n", true, "?"},
+		{"archive row", "[ ClusterId = 42; ProcId = 7 ]", false, "42.7"},
+		{"archive proc zero", "[ ClusterId = 42; ProcId = 0 ]", false, "42.0"},
+		{"archive cluster only", "[ ClusterId = 42 ]", false, "42"},
+		{"unparsable", "this is not an ad {{{", true, "?"},
+		{"empty", "", true, "?"},
 	} {
-		if got := idemJobID(tc.text); got != tc.want {
-			t.Errorf("%s: idemJobID(%q) = %q, want %q", tc.name, tc.text, got, tc.want)
+		if got := idemJobID(tc.text, tc.oldFormat); got != tc.want {
+			t.Errorf("%s: idemJobID(%q, %v) = %q, want %q",
+				tc.name, tc.text, tc.oldFormat, got, tc.want)
 		}
+	}
+}
+
+// The two query ops serialize differently, and each parser reads the other's output as an
+// empty ad rather than failing -- so a mismatched parser renders every job as "?" with no
+// error anywhere. This is the test that catches that, and it is why idemJobID takes the
+// format from its caller instead of guessing.
+func TestIdemJobIDParserMustMatchTheSource(t *testing.T) {
+	archive := "[ ClusterId = 42; ProcId = 7 ]"
+	projected := "ClusterId = 42\nProcId = 7\n"
+
+	if got := idemJobID(archive, true); got != "?" {
+		t.Errorf("an archive row read with the old-format parser gave %q; the test's "+
+			"premise about the two formats no longer holds", got)
+	}
+	if got := idemJobID(projected, false); got != "?" {
+		t.Errorf("a projected row read with the new-format parser gave %q; the test's "+
+			"premise about the two formats no longer holds", got)
+	}
+	if got := idemJobID(archive, false); got != "42.7" {
+		t.Errorf("archive row with its own parser = %q, want 42.7", got)
+	}
+	if got := idemJobID(projected, true); got != "42.7" {
+		t.Errorf("projected row with its own parser = %q, want 42.7", got)
 	}
 }
 
