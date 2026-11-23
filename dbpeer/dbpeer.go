@@ -13,7 +13,7 @@
 package dbpeer
 
 import (
-	cedarclient "github.com/bbockelm/cedar/client"
+	cedarclient "github.com/htcondor/cedar/client"
 )
 
 // Attrs is what the peer advertised, ready for dbrpc.WithPeerSessionAttrs.

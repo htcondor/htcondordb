@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/PelicanPlatform/classad/dbrpc"
-	cedarsec "github.com/bbockelm/cedar/security"
+	cedarsec "github.com/htcondor/cedar/security"
 
 	"github.com/htcondor/htcondordb/arrowtype"
 )

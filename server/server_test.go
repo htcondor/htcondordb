@@ -3,8 +3,8 @@ package server
 import (
 	"testing"
 
-	"github.com/bbockelm/cedar/security"
-	cedarserver "github.com/bbockelm/cedar/server"
+	"github.com/htcondor/cedar/security"
+	cedarserver "github.com/htcondor/cedar/server"
 
 	"github.com/htcondor/htcondordb/command"
 )

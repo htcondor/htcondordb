@@ -13,7 +13,7 @@ import (
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/db/replicate"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	cedarclient "github.com/bbockelm/cedar/client"
+	cedarclient "github.com/htcondor/cedar/client"
 	htcondor "github.com/htcondor/golang-htcondor"
 	"github.com/htcondor/golang-htcondor/config"
 

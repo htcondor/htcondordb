@@ -8,7 +8,7 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	cedarsec "github.com/bbockelm/cedar/security"
+	cedarsec "github.com/htcondor/cedar/security"
 )
 
 // SciToken bearer authentication.

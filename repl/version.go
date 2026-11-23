@@ -38,7 +38,7 @@ var versionComponents = []struct {
 }{
 	{"golang-htcondor", "github.com/htcondor/golang-htcondor"},
 	{"classad", "github.com/PelicanPlatform/classad"},
-	{"cedar", "github.com/bbockelm/cedar"},
+	{"cedar", "github.com/htcondor/cedar"},
 }
 
 // runVersion prints the running binary's identity and the versions of

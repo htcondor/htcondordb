@@ -16,20 +16,20 @@ go 1.26.0
 toolchain go1.27.0
 
 require (
-	github.com/PelicanPlatform/classad v0.43.1
-	github.com/PelicanPlatform/classad/changefeed v0.43.1
-	github.com/PelicanPlatform/classad/collections v0.43.1
-	github.com/PelicanPlatform/classad/db v0.43.1
-	github.com/PelicanPlatform/classad/dbrpc v0.43.1
-	github.com/PelicanPlatform/classad/wasmudf v0.43.1
+	github.com/PelicanPlatform/classad v0.44.1
+	github.com/PelicanPlatform/classad/changefeed v0.44.1
+	github.com/PelicanPlatform/classad/collections v0.44.1
+	github.com/PelicanPlatform/classad/db v0.44.1
+	github.com/PelicanPlatform/classad/dbrpc v0.44.1
+	github.com/PelicanPlatform/classad/wasmudf v0.44.1
 	github.com/apache/arrow-go/v18 v18.9.0
-	github.com/bbockelm/cedar v0.7.15
 	github.com/chzyer/readline v1.5.1
 	github.com/dustin/go-humanize v1.1.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/raft v1.8.0
 	github.com/hashicorp/raft-boltdb/v2 v2.4.2
-	github.com/htcondor/golang-htcondor v0.25.0
+	github.com/htcondor/cedar v0.7.17
+	github.com/htcondor/golang-htcondor v0.26.1
 	github.com/klauspost/compress v1.20.3
 	github.com/prometheus/client_golang v1.25.0
 	github.com/prometheus/client_model v0.6.3
@@ -59,6 +59,7 @@ require (
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
+	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.2 // indirect
