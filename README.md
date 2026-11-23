@@ -193,7 +193,7 @@ htcondordb is built on:
 - `github.com/htcondor/golang-htcondor` — config, security policy, DaemonCore
   integration (running under `condor_master`, ready/keepalive pings, privilege
   drop, SIGHUP reconfigure).
-- `github.com/bbockelm/cedar` — authenticated, encrypted transport.
+- `github.com/htcondor/cedar` — authenticated, encrypted transport.
 - `github.com/hashicorp/raft` — consensus for the consistent HA mode, tunneled
   over CEDAR.
 

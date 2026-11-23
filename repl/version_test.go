@@ -56,7 +56,7 @@ func TestVersionReportsRealComponents(t *testing.T) {
 		Main: debug.Module{Path: "github.com/htcondor/htcondordb", Version: "v0.18.6"},
 		Deps: []*debug.Module{
 			{Path: "github.com/PelicanPlatform/classad", Version: "v0.29.7"},
-			{Path: "github.com/bbockelm/cedar", Version: "v0.6.11"},
+			{Path: "github.com/htcondor/cedar", Version: "v0.6.11"},
 			{Path: "github.com/htcondor/golang-htcondor", Version: "v0.12.10"},
 			{Path: "github.com/some/unrelated", Version: "v1.0.0"},
 		},

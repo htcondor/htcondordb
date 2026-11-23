@@ -8,19 +8,19 @@ go 1.26.5
 toolchain go1.27.0
 
 require (
-	github.com/PelicanPlatform/classad v0.43.1
-	github.com/PelicanPlatform/classad/dbrpc v0.43.1
+	github.com/PelicanPlatform/classad v0.44.1
+	github.com/PelicanPlatform/classad/dbrpc v0.44.1
 	github.com/apache/arrow-go/v18 v18.9.0
-	github.com/bbockelm/cedar v0.7.15
 	github.com/grafana/grafana-plugin-sdk-go v0.300.0
-	github.com/htcondor/golang-htcondor v0.25.0
+	github.com/htcondor/cedar v0.7.17
+	github.com/htcondor/golang-htcondor v0.26.1
 	github.com/htcondor/htcondordb v0.0.0
 )
 
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/PelicanPlatform/classad/collections v0.43.1 // indirect
-	github.com/PelicanPlatform/classad/db v0.43.1 // indirect
+	github.com/PelicanPlatform/classad/collections v0.44.1 // indirect
+	github.com/PelicanPlatform/classad/db v0.44.1 // indirect
 	github.com/RoaringBitmap/roaring/v2 v2.29.0 // indirect
 	github.com/bbockelm/gosssd v0.0.4 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -57,6 +57,7 @@ require (
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
+	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect

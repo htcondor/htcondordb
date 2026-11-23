@@ -50,8 +50,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/bbockelm/cedar/message"
-	"github.com/bbockelm/cedar/stream"
+	"github.com/htcondor/cedar/message"
+	"github.com/htcondor/cedar/stream"
 
 	"golang.org/x/sys/unix"
 )

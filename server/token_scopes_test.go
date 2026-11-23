@@ -14,9 +14,9 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/cedar/security"
-	cedarserver "github.com/bbockelm/cedar/server"
-	"github.com/bbockelm/cedar/stream"
+	"github.com/htcondor/cedar/security"
+	cedarserver "github.com/htcondor/cedar/server"
+	"github.com/htcondor/cedar/stream"
 	"github.com/htcondor/golang-htcondor/sessioncache"
 
 	"github.com/htcondor/htcondordb/command"

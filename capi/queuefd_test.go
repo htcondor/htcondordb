@@ -16,8 +16,8 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/dbrpc"
-	"github.com/bbockelm/cedar/message"
-	"github.com/bbockelm/cedar/stream"
+	"github.com/htcondor/cedar/message"
+	"github.com/htcondor/cedar/stream"
 )
 
 // decodeCedarFrames splits a response the writer produced into one message per

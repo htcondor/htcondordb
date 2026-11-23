@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bbockelm/cedar/stream"
 	"github.com/hashicorp/raft"
+	"github.com/htcondor/cedar/stream"
 )
 
 // The raft NetworkTransport speaks a msgpack byte stream over a net.Conn. CEDAR

@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/PelicanPlatform/classad/classad"
-	cedarclient "github.com/bbockelm/cedar/client"
-	"github.com/bbockelm/cedar/message"
+	cedarclient "github.com/htcondor/cedar/client"
+	"github.com/htcondor/cedar/message"
 	htcondor "github.com/htcondor/golang-htcondor"
 	"github.com/htcondor/golang-htcondor/config"
 

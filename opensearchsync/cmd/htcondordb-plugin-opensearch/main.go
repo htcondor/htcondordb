@@ -27,8 +27,8 @@ import (
 
 	"github.com/PelicanPlatform/classad/db"
 	"github.com/PelicanPlatform/classad/dbrpc"
-	cedarclient "github.com/bbockelm/cedar/client"
-	"github.com/bbockelm/cedar/security"
+	cedarclient "github.com/htcondor/cedar/client"
+	"github.com/htcondor/cedar/security"
 	htcondor "github.com/htcondor/golang-htcondor"
 	"github.com/htcondor/golang-htcondor/config"
 	"github.com/htcondor/htcondordb/opensearchsync"

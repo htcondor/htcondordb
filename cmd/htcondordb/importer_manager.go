@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bbockelm/cedar/security"
+	"github.com/htcondor/cedar/security"
 	"github.com/htcondor/golang-htcondor/config"
 	"github.com/htcondor/golang-htcondor/droppriv"
 

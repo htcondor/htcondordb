@@ -32,7 +32,7 @@ jobs:
         with: { repository: PelicanPlatform/classad, path: golang-classads }
       - name: Checkout cedar
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { repository: bbockelm/cedar, path: golang-cedar }
+        with: { repository: htcondor/cedar, path: golang-cedar }
       - name: Checkout golang-htcondor
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { repository: htcondor/golang-htcondor, path: golang-htcondor }

@@ -14,10 +14,10 @@ import (
 
 	"github.com/PelicanPlatform/classad/classad"
 	"github.com/PelicanPlatform/classad/db"
-	"github.com/bbockelm/cedar/message"
-	"github.com/bbockelm/cedar/security"
-	cedarserver "github.com/bbockelm/cedar/server"
-	"github.com/bbockelm/cedar/stream"
+	"github.com/htcondor/cedar/message"
+	"github.com/htcondor/cedar/security"
+	cedarserver "github.com/htcondor/cedar/server"
+	"github.com/htcondor/cedar/stream"
 
 	"github.com/htcondor/htcondordb/command"
 	"github.com/htcondor/htcondordb/server"
