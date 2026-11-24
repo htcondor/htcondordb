@@ -1478,3 +1478,81 @@ func TestJobMetricsSameValueSpelling(t *testing.T) {
 		t.Error("MemoryUsage should not be bound -- an absent attribute has no value to match")
 	}
 }
+
+// idleFlush is a periodic shadow flush of a job that is running and doing nothing: the starter's
+// uptime advances and not one counter moves. No StatsLastUpdateTimeStarter, because that is a
+// verbose-level statistic a default starter does not publish.
+func idleFlush(uptime int) string {
+	return fmt.Sprintf(`105
+103 1.0 StatsLifetimeStarter %d
+103 1.0 RemoteUserCpu 12.0
+103 1.0 RemoteSysCpu 1.0
+103 1.0 MemoryUsage 512
+103 1.0 ResidentSetSize 524288
+103 1.0 BlockReadBytes 4096
+103 1.0 JobStatus 2
+106
+`, uptime)
+}
+
+// TestJobMetricsIdleRunningJobStillSampled is the counterweight to the unchanged-write rule, and
+// the case that rule gets wrong if it is read as "no change, no sample".
+//
+// A job can run for hours moving no counter at all -- blocked on a read, wedged, waiting on a
+// lock -- and those are the hours an operator most wants a series for. Every flush re-sends the
+// same numbers, so nothing in it has "changed" except the starter's own uptime. Keying periodic
+// on that clock is what keeps the job in the data: without it the series stops at the first
+// flush, and an hour of a live job is indistinguishable from a dead tailer.
+func TestJobMetricsIdleRunningJobStillSampled(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+	appendFile(t, logPath, spawned(1))
+	for r := 1; r <= 4; r++ {
+		appendFile(t, logPath, idleFlush(900*r))
+	}
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "periodic", "periodic", "periodic", "periodic"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (a live job that consumes nothing must still appear "+
+			"in the series, once per flush)", kinds, want)
+	}
+}
+
+// TestJobMetricsReplayedIdleFlushIsNotASample is the other half: the starter's uptime is also
+// what separates a fresh flush from the SAME flush committed twice. Identical bytes, so the
+// uptime has not advanced, so there is no second observation to record.
+func TestJobMetricsReplayedIdleFlushIsNotASample(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+	appendFile(t, logPath, spawned(1))
+	appendFile(t, logPath, idleFlush(900))
+	appendFile(t, logPath, idleFlush(900))
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "periodic"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (the uptime did not advance, so this is the same "+
+			"observation logged twice)", kinds, want)
+	}
+}

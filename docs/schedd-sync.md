@@ -373,7 +373,7 @@ of shadow update, not just the periodic one, so samples arrive on:
 
 | Trigger (`SampleTrigger`) | When |
 |---|---|
-| `periodic` | the starter's stats clock advanced — `SHADOW_QUEUE_UPDATE_INTERVAL`, default 900s |
+| `periodic` | a starter clock advanced (`StatsLifetimeStarter`, or `StatsLastUpdateTimeStarter` where the starter publishes it) — `SHADOW_QUEUE_UPDATE_INTERVAL`, default 900s |
 | `status` | job state change: began executing, suspended, transfer start/finish, reconnect |
 | `checkpoint` | a checkpoint completed |
 | `terminal` | the run ended — completed, evicted, held or removed |

@@ -329,42 +329,107 @@ func (t sampleTrigger) String() string {
 
 // triggerFor classifies one attribute name. Attributes not named here and not in sampleAttrs
 // contribute nothing (triggerNone) unless the admin configured them, which the caller handles.
+//
+// This runs on every SetAttribute in job_queue.log, so the name is case-folded into a stack
+// buffer rather than through strings.ToLower, which allocates for every CamelCase name -- that
+// is to say, for all of them.
 func triggerFor(name string) sampleTrigger {
-	switch {
-	case strings.EqualFold(name, statsClockAttr):
-		return triggerPeriodic
+	var buf [maxFoldName]byte
+	b, ok := foldAttr(name, &buf)
+	if !ok {
+		return triggerForFolded(strings.ToLower(name))
 	}
-	// Case-insensitive, because ClassAd attribute names are.
-	switch strings.ToLower(name) {
-	case "exitcode", "exitbysignal", "exitsignal", "exitreason", "jobexitstatus",
-		"terminationpending", "removereason", "holdreason", "holdreasoncode",
-		"vacatereason", "lastvacatetime":
-		// Deliberately NOT CompletionDate: the schedd writes it as 0 at SUBMIT, so it is a
-		// terminal signal only by its value, never by being set. JobStatus and ExitCode carry
-		// the real transition.
-		return triggerTerminal
-	case "jobcheckpointnumber", "lastcheckpointtime", "numckpts":
-		return triggerCheckpoint
-	case "jobstatus", "transferringinput", "transferringoutput", "transferqueued",
-		"lastsuspensiontime", "numjobstarts", "numshadowstarts",
-		"jobcurrentstartexecutingdate", "jobcurrentreconnectattempt":
-		return triggerStatus
+	return triggerForFolded(string(b))
+}
+
+// triggerForFolded is triggerFor with the name already lowercased. Taking a string the caller
+// built from a stack buffer is what keeps the lookups below allocation-free: the compiler
+// special-cases a string([]byte) conversion used only as a map key.
+func triggerForFolded(lower string) sampleTrigger {
+	if t, ok := triggerByName[lower]; ok {
+		return t
 	}
 	// Only a USAGE attribute makes an otherwise-unremarkable commit worth sampling. The context
 	// attributes (Owner, RequestMemory, ClusterId, ...) are carried on every sample but are not
 	// themselves observations, and treating them as triggers would sample every job at submit
 	// time -- a record per job in a 100k-job submit burst, none of which has run yet.
-	if c, ok := sampleAttrs[canonAttr(name)]; ok && c != classContext {
+	if canon, ok := attrFold[lower]; ok && sampleAttrs[canon] != classContext {
 		return triggerUpdate
 	}
 	return triggerNone
 }
 
+// triggerByName is the attribute-name half of triggerFor, keyed by the lowercased name.
+var triggerByName = func() map[string]sampleTrigger {
+	m := map[string]sampleTrigger{}
+	add := func(t sampleTrigger, names ...string) {
+		for _, n := range names {
+			m[strings.ToLower(n)] = t
+		}
+	}
+	// The starter's two clocks. Either one advancing is a fresh report, and that is the whole of
+	// what makes a sample periodic: a job can run for hours moving no counter at all -- blocked
+	// on a read, wedged, waiting on a lock -- and those are the hours an operator most wants a
+	// series for. Without this, nothing in such a flush has moved and the job falls out of the
+	// data entirely, leaving a gap indistinguishable from a dead tailer.
+	//
+	// StatsLifetimeStarter is the one that is always there (BASIC level, in the schedd's
+	// queue-update whitelist); StatsLastUpdateTimeStarter is a verbose-level statistic a default
+	// starter never sends. Neither advances when the SAME update is committed twice, which is
+	// what keeps a replayed commit from counting as a second observation.
+	add(triggerPeriodic, statsClockAttr, statsLifetimeAttr)
+	// Deliberately NOT CompletionDate: the schedd writes it as 0 at SUBMIT, so it is a terminal
+	// signal only by its value, never by being set. JobStatus and ExitCode carry the real
+	// transition.
+	add(triggerTerminal, "ExitCode", "ExitBySignal", "ExitSignal", "ExitReason", "JobExitStatus",
+		"TerminationPending", "RemoveReason", "HoldReason", "HoldReasonCode",
+		"VacateReason", "LastVacateTime")
+	add(triggerCheckpoint, "JobCheckpointNumber", "LastCheckpointTime", "NumCkpts")
+	add(triggerStatus, "JobStatus", "TransferringInput", "TransferringOutput", "TransferQueued",
+		"LastSuspensionTime", "NumJobStarts", numShadowStartsAttr,
+		"JobCurrentStartExecutingDate", "JobCurrentReconnectAttempt")
+	return m
+}()
+
+// maxFoldName bounds the stack buffer foldAttr lowercases into. ClassAd attribute names are short
+// identifiers; a longer one takes the allocating path, which is correct, just slower.
+const maxFoldName = 128
+
+// foldAttr lowercases an ASCII attribute name into buf and returns the prefix holding it, so that
+// a lookup written as m[string(b)] does not allocate -- the compiler special-cases a string([]byte)
+// conversion used only as a map key. Reports false for a name that is non-ASCII or too long, where
+// the caller must lower it properly: Unicode lowercasing is not length-preserving and cannot be
+// done in place.
+func foldAttr(name string, buf *[maxFoldName]byte) ([]byte, bool) {
+	n := len(name)
+	if n == 0 || n > maxFoldName {
+		return nil, false
+	}
+	b := buf[:n]
+	for i := 0; i < n; i++ {
+		ch := name[i]
+		if ch >= 0x80 {
+			return nil, false
+		}
+		if 'A' <= ch && ch <= 'Z' {
+			ch += 'a' - 'A'
+		}
+		b[i] = ch
+	}
+	return b, true
+}
+
 // canonAttr resolves an attribute name to the spelling used as a key in sampleAttrs. ClassAd
-// names are case-insensitive but Go maps are not, so a lookup has to go through here; the map is
-// small and the result is cached per process.
+// names are case-insensitive but Go maps are not, so a lookup has to go through here.
 func canonAttr(name string) string {
 	if _, ok := sampleAttrs[name]; ok {
+		return name
+	}
+	var buf [maxFoldName]byte
+	if b, ok := foldAttr(name, &buf); ok {
+		if c, found := attrFold[string(b)]; found {
+			return c
+		}
 		return name
 	}
 	if c, ok := attrFold[strings.ToLower(name)]; ok {
@@ -775,8 +840,16 @@ func sameValue(old *classad.Expr, value string) bool {
 }
 
 func (m *jobMetrics) isExtra(attr string) bool {
-	_, ok := m.extraFold[strings.ToLower(attr)]
-	return ok
+	if len(m.extraFold) == 0 {
+		return false // the common case: no admin extras configured, so nothing to fold for
+	}
+	var buf [maxFoldName]byte
+	if b, ok := foldAttr(attr, &buf); ok {
+		_, found := m.extraFold[string(b)]
+		return found
+	}
+	_, found := m.extraFold[strings.ToLower(attr)]
+	return found
 }
 
 // forget drops a job's predecessor cache entry -- called when the job leaves the queue, so the

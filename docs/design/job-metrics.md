@@ -521,6 +521,19 @@ nothing, plus one useless record per job in a large submit. Two rules together:
   a `SetAttribute` whether or not the value changed, and `QmgrJobUpdater` re-sends its whole
   whitelist on every flush, so most of the writes in the stream set a value the row already
   holds. Each candidate write is compared against the row's current value before it is noted.
+- A **starter clock advancing is itself an observation**. `StatsLifetimeStarter` (the starter's
+  uptime, published at BASIC level and carried by every update) and `StatsLastUpdateTimeStarter`
+  (verbose-level, usually absent) both trigger `periodic`.
+
+The last two rules are a pair and neither works alone. A job can run for hours moving no counter
+at all — blocked on a read, wedged, waiting on a lock — and those are the hours an operator most
+wants a series for. Judging such a flush only by whether a counter moved drops the job out of the
+data entirely, leaving a gap indistinguishable from a dead tailer; judging it by the starter's
+clock keeps one sample per flush and founds it on the starter having actually reported. The same
+clock is what separates a fresh flush from the *same* flush committed twice, where it does not
+advance. Nothing else in the whitelist serves: `CommittedTime` moves only when the starter sends
+`NewlyCommittedTime`, i.e. at a checkpoint, and `RecentStatsLifetimeStarter` plateaus once the
+starter's recent window fills.
 
 That last rule is not only about volume. `JobStatus` is in the whitelist, so every shadow flush
 re-sends it, and a sampler that reads a rewrite as a change labels the sample `"status"` — a
