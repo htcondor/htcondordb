@@ -1597,3 +1597,171 @@ func TestJobMetricsClockOnlyFlushIsSampled(t *testing.T) {
 			"the starter reporting, and the job is still running)", kinds, want)
 	}
 }
+
+// TestJobMetricsPreimageIsPerTransaction pins the lifetime of the pre-image cache. It holds a copy
+// of every row the transaction being replayed touched, and it is read to decide whether a write
+// moves anything -- so carrying it into the NEXT transaction both retains those rows and compares
+// that transaction's writes against a snapshot that is no longer the row.
+//
+// The case that gets this wrong is a transaction where nothing moved, which is the common one: it
+// is exactly what the unchanged-write rule exists to recognise, and it is the path that takes no
+// sample and so has no other reason to touch the cache.
+func TestJobMetricsPreimageIsPerTransaction(t *testing.T) {
+	pinClock(t, base-1)
+	arch, cleanup := newMetricsArchive(t)
+	defer cleanup()
+	store, err := db.Open("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	job := classad.New()
+	for k, v := range map[string]any{
+		"ClusterId": int64(1), "ProcId": int64(0), "Owner": "alice", "JobStatus": int64(2),
+		"NumShadowStarts": int64(1), "RemoteUserCpu": 300.0,
+	} {
+		_ = job.Set(k, v)
+	}
+	if err := store.Put("1.0", job); err != nil {
+		t.Fatal(err)
+	}
+	m := newJobMetrics(JobMetricsConfig{Archive: arch})
+
+	// A transaction in which every write is a no-op: nothing is noted, nothing is sampled.
+	tx := store.Begin()
+	m.note(tx, "1.0", "RemoteUserCpu", "300.0")
+	m.note(tx, "1.0", "JobStatus", "2")
+	if len(m.pending) != 0 {
+		t.Fatalf("pending = %v, want empty (every write re-sent the stored value)", m.pending)
+	}
+	if len(m.preimage) == 0 {
+		t.Fatal("the comparison should have read and cached the row")
+	}
+	samples, _ := m.collect(tx, 1)
+	tx.Abort()
+	if len(samples) != 0 {
+		t.Fatalf("collect produced %d samples, want 0", len(samples))
+	}
+	if n := len(m.preimage); n != 0 {
+		t.Fatalf("preimage holds %d entries after the transaction ended, want 0 -- a sampling "+
+			"transaction clears it, and one that samples nothing must too", n)
+	}
+}
+
+// TestJobMetricsEndpointPerRunEnding is the guarantee every consumer of this table leans on: a run
+// that was being sampled gets exactly one terminal sample, whatever ended it. A resource plot finds
+// where a run stopped by filtering to that sample and never consults epoch_history, so a missing
+// one is a silently truncated series and a second one is a run that appears to end twice.
+//
+// Worth testing against each ending rather than one: HTCondor spells them differently, and the
+// rules that decide a sample -- a write has to move a value, a terminal is the transition OUT of
+// the executing states -- could each hold for one spelling and fail for another. Each ending also
+// re-sends counters that have not moved, as a real shadow does.
+func TestJobMetricsEndpointPerRunEnding(t *testing.T) {
+	for _, c := range []struct {
+		name, ending string
+	}{
+		{"completed", "103 1.0 JobStatus 4\n103 1.0 ExitCode 0\n103 1.0 ExitBySignal false\n"},
+		{"evicted to idle", "103 1.0 JobStatus 1\n103 1.0 LastVacateTime 1700000900\n"},
+		{"held", "103 1.0 JobStatus 5\n103 1.0 HoldReason \"out of memory\"\n103 1.0 HoldReasonCode 34\n"},
+		{"removed", "103 1.0 JobStatus 3\n103 1.0 RemoveReason \"condor_rm\"\n"},
+		// The status moving on its own, with nothing a name would call terminal. This is the
+		// case the endpoint rule exists for: HTCondor writes ExitCode in one transaction and
+		// JobStatus in a later one, so the commit that ends the run often says only this. A rule
+		// keyed on the attribute NAME finds no endpoint here at all.
+		{"status alone", "103 1.0 JobStatus 4\n"},
+		{"idle alone", "103 1.0 JobStatus 1\n"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			pinClock(t, base-1)
+			dir := t.TempDir()
+			logPath := filepath.Join(dir, "job_queue.log")
+			writeFile(t, logPath, submitted)
+			s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+			appendFile(t, logPath, spawned(1))
+			appendFile(t, logPath, starterUpdate(base+300, 570, 30, 1024, 1048576))
+			// The ending commit, carrying unchanged counters beside the status change, as a real
+			// shadow's final update does.
+			appendFile(t, logPath, "105\n"+
+				"103 1.0 RemoteUserCpu 570.0\n103 1.0 MemoryUsage 1024\n"+c.ending+"106\n")
+			if err := s.Poll(context.Background()); err != nil {
+				t.Fatalf("poll: %v", err)
+			}
+
+			got := samples(t, arch)
+			var kinds []string
+			terminals := 0
+			for _, ad := range got {
+				k := trig(t, ad)
+				kinds = append(kinds, k)
+				if k == "terminal" {
+					terminals++
+				}
+			}
+			if terminals != 1 {
+				t.Fatalf("triggers = %v: %d terminal samples, want exactly 1", kinds, terminals)
+			}
+			if kinds[len(kinds)-1] != "terminal" {
+				t.Fatalf("triggers = %v: the endpoint must be the run's LAST sample", kinds)
+			}
+			// The endpoint carries the run's final numbers, which is why no epoch_history lookup
+			// is needed to find them.
+			last := got[len(got)-1]
+			closeTo(t, num(t, last, "RemoteUserCpu"), 570, "endpoint RemoteUserCpu")
+			if v, _ := last.EvaluateAttrInt(RunInstanceAttr); v != 0 {
+				t.Errorf("endpoint RunInstanceID = %d, want 0", v)
+			}
+			// The predecessor is dropped at the endpoint, so a re-run starts a fresh series.
+			if _, ok := s.metrics.prev["1.0"]; ok {
+				t.Error("the endpoint should drop the job's predecessor entry")
+			}
+		})
+	}
+}
+
+// TestJobMetricsRealTransitionOutranksEarlierClock guards the short-circuit that makes the
+// unchanged-write comparison affordable: once a transaction has noted a job, a later write whose
+// trigger cannot EXCEED what is already noted is not compared at all.
+//
+// The hazard is ordering. A shadow flush carries the starter's clock before it carries the status,
+// so the clock is noted first as "periodic" -- and if the skip were keyed on "already noted"
+// rather than on the trigger being no stronger, the genuine state change behind it would be
+// swallowed. The sample would be labelled periodic, and a throttle would then be entitled to drop
+// a transition, which is the one thing it must never do.
+func TestJobMetricsRealTransitionOutranksEarlierClock(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	// Throttle on and wide, so a sample that comes out mislabelled "periodic" is not merely
+	// cosmetic -- it is dropped, and the transition disappears.
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{MinInterval: 600 * time.Second})
+
+	appendFile(t, logPath, spawned(1))
+	// The clock moves first, the status after it, in one commit -- the order a flush writes them.
+	appendFile(t, logPath, fmt.Sprintf(`105
+103 1.0 StatsLifetimeStarter 300
+103 1.0 StatsLastUpdateTimeStarter %d
+103 1.0 RemoteUserCpu 300.0
+103 1.0 JobStatus 6
+106
+`, base+300))
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "status"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (the job moved to transferring output; that is a "+
+			"transition, whatever else the same commit carried and in whatever order)", kinds, want)
+	}
+	if n := s.metrics.status().Throttled; n != 0 {
+		t.Errorf("Throttled = %d, want 0 -- a transition must never be throttled away", n)
+	}
+}
