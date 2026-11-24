@@ -302,6 +302,7 @@ func (o sampleOutcomes) add(m scheddsync.MetricsStatus) sampleOutcomes {
 	o.AfterEnd += m.AfterEnd
 	o.ClockMix += m.ClockMix
 	o.Stalled += m.Stalled
+	o.Unchanged += m.Unchanged
 	return o
 }
 
@@ -317,6 +318,7 @@ func (o sampleOutcomes) byOutcome() map[string]int64 {
 		"after_end":     o.AfterEnd,
 		"clock_mix":     o.ClockMix,
 		"stalled":       o.Stalled,
+		"unchanged":     o.Unchanged,
 	}
 }
 

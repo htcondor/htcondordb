@@ -460,5 +460,12 @@ restart or a commit-conflict rewind re-reading a region. `baseline` is expected 
 `HTCONDORDB_JOB_METRICS_MIN_INTERVAL` is dropping; `deduped` should be nonzero only just after
 a restart.
 
+`unchanged` counts attribute writes that set a value the row already held, which are not
+observations and produce no sample. It is normally far larger than `appended`: the shadow
+re-sends its whole update whitelist on every flush, and the schedd logs each one whether or
+not the value moved. Read it as a ratio against `appended` — it climbing is the tailer doing
+its job, while it collapsing means something upstream started moving values that used to sit
+still, and sample volume will have climbed with it.
+
 See [the design sketch](design/job-metrics.md) for why each of these rules exists, with
 citations into the HTCondor source.

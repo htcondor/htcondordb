@@ -1407,6 +1407,12 @@ func (s *JobSync) applyEntry(e *classadlog.LogEntry) error {
 		if e.TargetType != "" && e.TargetType != "(unknown)" {
 			ad.InsertAttrString("TargetType", e.TargetType)
 		}
+		if table == s.target {
+			// A whole new ad: nothing in it is a change to anything, and from here on the
+			// transaction hands back the ad it buffered rather than a copy, so the sampler must
+			// not go on reading the row it was holding.
+			s.metrics.resetPre(e.Key)
+		}
 		tx.NewClassAd(e.Key, ad)
 		// Chain a proc ad to its parent cluster ad: inherit the cluster's attributes already
 		// set (the proc's own, applied by later entries, win) and register it so a subsequent
@@ -1418,10 +1424,14 @@ func (s *JobSync) applyEntry(e *classadlog.LogEntry) error {
 			s.addChild(parent, e.Key)
 		}
 	case classadlog.OpDestroyClassAd:
+		if table == s.target {
+			s.metrics.resetPre(e.Key) // same reason as NewClassAd above
+		}
 		tx.DestroyClassAd(e.Key)
 		if table == s.target {
 			// The job left the queue: drop its resource-sample predecessor, so that cache tracks
-			// running jobs rather than everything the tailer has ever seen.
+			// running jobs rather than everything the tailer has ever seen. (forget also drops
+			// the pre-image resetPre just cleared, which is why that one has to come first.)
 			s.metrics.forget(e.Key)
 		}
 		if parent, ok := clusterKeyOf(e.Key); ok {
@@ -1443,6 +1453,16 @@ func (s *JobSync) applyEntry(e *classadlog.LogEntry) error {
 		// in a transaction decoded a multi-KB job ad twice just to move this counter.
 		if !tx.Has(e.Key) {
 			s.mAbsentKey.Add(1)
+		}
+		if table == s.target {
+			// Resource sampling rides along with the writes we are already doing: note that this
+			// job moved, and commitAll turns the noted set into one sample each.
+			//
+			// BEFORE the write, because note's whole job is to compare the incoming value against
+			// the one the row holds, and after the write there is no longer one to compare to.
+			// The shadow re-sends every whitelisted attribute on every flush, so most of these
+			// writes set a value that is already there and are not observations at all.
+			s.metrics.note(tx, e.Key, e.Name, e.Value)
 		}
 		if err := tx.SetAttribute(e.Key, e.Name, e.Value); err != nil {
 			// A single bad value must not abort the whole sync; skip it. Two kinds reach here: a
@@ -1467,14 +1487,16 @@ func (s *JobSync) applyEntry(e *classadlog.LogEntry) error {
 				}
 			}
 		}
-		if table == s.target {
-			// Resource sampling rides along with the writes we are already doing: note that this
-			// job moved, and commitAll turns the noted set into one sample each.
-			s.metrics.note(e.Key, e.Name)
-		}
 	case classadlog.OpDeleteAttribute:
 		if !tx.Has(e.Key) {
 			s.mAbsentKey.Add(1) // observe-only (DeleteAttribute on an absent key is a no-op, but same signal)
+		}
+		if table == s.target {
+			// A starter-sourced counter that an update omitted is DELETED from the job ad by
+			// HTCondor (CopyAttribute), so a delete is a real observation, not an absence of one
+			// -- but only when the attribute was there to delete. Before the write, for the same
+			// reason as the SetAttribute above.
+			s.metrics.noteDelete(tx, e.Key, e.Name)
 		}
 		tx.DeleteAttribute(e.Key, e.Name)
 		if kids := s.children[e.Key]; len(kids) > 0 {
@@ -1482,11 +1504,6 @@ func (s *JobSync) applyEntry(e *classadlog.LogEntry) error {
 			for child := range kids {
 				jtx.DeleteAttribute(child, e.Name)
 			}
-		}
-		if table == s.target {
-			// A starter-sourced counter that an update omitted is DELETED from the job ad by
-			// HTCondor (CopyAttribute), so a delete is a real observation, not an absence of one.
-			s.metrics.note(e.Key, e.Name)
 		}
 	}
 	return nil

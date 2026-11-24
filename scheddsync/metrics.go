@@ -539,6 +539,14 @@ type jobMetrics struct {
 	// the strongest trigger seen for each. Collected at commit and cleared on commit or abort.
 	pending map[string]sampleTrigger
 
+	// preimage holds, per job key, the row as it stood before the transaction currently being
+	// replayed first wrote a sample-triggering attribute of it -- what note compares an incoming
+	// write against to tell a value that MOVED from one that was merely re-sent. A nil entry
+	// records that there is nothing to compare against, either because the key is not in the view
+	// or because this transaction replaced the whole ad (see resetPre). Lives for one
+	// transaction: cleared with pending, at commit or abort.
+	preimage map[string]*classad.ClassAd
+
 	// prev is the per-job predecessor cache described on prevObservation.
 	prev map[string]*prevObservation
 
@@ -573,6 +581,7 @@ type jobMetrics struct {
 	mInherited   atomic.Int64
 	mDeduped     atomic.Int64
 	mAppendFails atomic.Int64
+	mUnchanged   atomic.Int64
 }
 
 // newJobMetrics builds a sampler. A nil cfg.Archive returns nil, and every call site tolerates a
@@ -592,6 +601,7 @@ func newJobMetrics(cfg JobMetricsConfig) *jobMetrics {
 		minInterval: int64(cfg.MinInterval / time.Second),
 		now:         nowFn,
 		pending:     map[string]sampleTrigger{},
+		preimage:    map[string]*classad.ClassAd{},
 		prev:        map[string]*prevObservation{},
 		ended:       map[string]int64{},
 		store:       cfg.Store,
@@ -629,30 +639,139 @@ func splitMetricAttrs(in []string) []string {
 	return out
 }
 
-// note records that key's attribute changed in the transaction being replayed. Called for every
-// SetAttribute/DeleteAttribute that routes to the jobs table; cheap, because the common case is a
-// map lookup that returns triggerNone and stores nothing.
-func (m *jobMetrics) note(key, attr string) {
+// candidateTrigger classifies one attribute write for sampling: what it would label a sample, or
+// triggerNone if a write of it is not an observation at all. It is triggerFor plus the two classes
+// that depend on this sampler's configuration rather than on the attribute name alone.
+func (m *jobMetrics) candidateTrigger(attr string) sampleTrigger {
+	if t := triggerFor(attr); t != triggerNone {
+		return t
+	}
+	switch {
+	case m.isExtra(attr):
+		return triggerChirp
+	case hasUsageSuffix(attr):
+		// A custom machine resource (GPUsUsage, a STARTD_CRON metric). Treat it as a real usage
+		// update rather than a chirp: it comes from the starter, on the starter's cadence.
+		return triggerUpdate
+	}
+	return triggerNone
+}
+
+// note records that key's attribute MOVED in the transaction being replayed. Called for every
+// SetAttribute that routes to the jobs table; cheap in the common case, because an attribute that
+// could not trigger a sample is rejected by a map lookup before anything is read.
+//
+// pre must read the row as it stood BEFORE this write -- so the ingest path calls note ahead of
+// applying it, not after. Comparing against the stored value is the difference between "the
+// shadow sent an update" and "the update said something new", and HTCondor gives no other way to
+// tell: QmgrJobUpdater re-sends its whole whitelist on every flush, and the schedd logs a
+// SetAttribute for each one whether or not the value moved. Without the comparison, a JobStatus 2
+// rewritten as 2 is a "status" sample -- a transition that never happened, labelled as one, and
+// exempt from the throttle because transitions are exempt by design.
+func (m *jobMetrics) note(pre rowReader, key, attr, value string) {
 	if m == nil {
 		return
 	}
-	t := triggerFor(attr)
-	if t == triggerNone {
-		switch {
-		case m.isExtra(attr):
-			t = triggerChirp
-		case hasUsageSuffix(attr):
-			// A custom machine resource (GPUsUsage, a STARTD_CRON metric). Treat it as a real
-			// usage update rather than a chirp: it comes from the starter, on the starter's
-			// cadence.
-			t = triggerUpdate
-		default:
-			return
-		}
+	t := m.candidateTrigger(attr)
+	if t == triggerNone || m.alreadyAt(key, t) {
+		return
 	}
+	if old, had := m.preAttr(pre, key, attr); had && sameValue(old, value) {
+		m.mUnchanged.Add(1)
+		return
+	}
+	m.noteTrigger(key, t)
+}
+
+// noteDelete is note for a DeleteAttribute. A delete IS an observation -- HTCondor's CopyAttribute
+// deletes a starter-sourced counter that an update omitted, so the attribute going away is how the
+// starter reports it stopped publishing it -- but only when the attribute was actually there.
+func (m *jobMetrics) noteDelete(pre rowReader, key, attr string) {
+	if m == nil {
+		return
+	}
+	t := m.candidateTrigger(attr)
+	if t == triggerNone || m.alreadyAt(key, t) {
+		return
+	}
+	if _, had := m.preAttr(pre, key, attr); !had {
+		m.mUnchanged.Add(1)
+		return
+	}
+	m.noteTrigger(key, t)
+}
+
+// alreadyAt reports that this transaction has already noted key at t or stronger, so whether this
+// write moved anything cannot change the outcome: the sample is being taken either way, and the
+// label is the strongest trigger, which t cannot raise. Skipping the comparison there is most of
+// what makes the comparison affordable -- a shadow flush re-sends two dozen attributes and the
+// first one that moved settles the question for every weaker one behind it.
+//
+// The cost is that Unchanged counts only the writes actually examined, which is why it is a ratio
+// against Appended and not a census of the log.
+func (m *jobMetrics) alreadyAt(key string, t sampleTrigger) bool {
+	cur, ok := m.pending[key]
+	return ok && t <= cur
+}
+
+func (m *jobMetrics) noteTrigger(key string, t sampleTrigger) {
 	if cur, ok := m.pending[key]; !ok || t > cur {
 		m.pending[key] = t
 	}
+}
+
+// preAttr returns attr as the row bound it before this transaction's first candidate write to key,
+// and whether it was bound at all.
+//
+// The row is read once per key per transaction and held, because reading one attribute out of the
+// store costs a full decode of the job ad: a shadow flush sets a few dozen whitelisted attributes
+// in one transaction, and asking the store per attribute would decode the same multi-KB ad a few
+// dozen times over. Holding it is safe for exactly as long as this transaction has not replaced
+// the whole ad, which is what resetPre is for -- past that point the store hands back the ad it
+// buffered, and the writes that follow edit it in place.
+func (m *jobMetrics) preAttr(pre rowReader, key, attr string) (*classad.Expr, bool) {
+	ad, ok := m.preimage[key]
+	if !ok {
+		if pre != nil {
+			ad, _ = pre.LookupClassAd(key)
+		}
+		m.preimage[key] = ad
+	}
+	if ad == nil {
+		return nil, false
+	}
+	return ad.Lookup(attr)
+}
+
+// resetPre drops key's pre-image and refuses one for the rest of the transaction. Called when the
+// transaction writes or destroys the whole ad, which is both of the cases where comparing against
+// a pre-image is wrong: a replaced ad makes everything in it new, and a destroyed one leaves
+// nothing to compare against. It is also what keeps the held ad safe to hold.
+func (m *jobMetrics) resetPre(key string) {
+	if m == nil {
+		return
+	}
+	m.preimage[key] = nil
+}
+
+// sameValue reports whether a job_queue.log value is the one the row already holds. old is the
+// expression bound in the row; value is the log's text for the incoming one. The cheap string
+// compare settles it whenever the two spellings agree -- which they do for the integers and
+// floats the shadow re-sends -- and the parse is the fallback for the rest, so that a value the
+// store merely RE-SPELLED is not mistaken for a value that moved.
+func sameValue(old *classad.Expr, value string) bool {
+	if old == nil {
+		return false
+	}
+	text := old.String()
+	if text == value {
+		return true
+	}
+	e, err := classad.ParseExprOld(value)
+	if err != nil {
+		return false // unparseable: the ingest path refuses it too, but do not call it unchanged
+	}
+	return text == e.String()
 }
 
 func (m *jobMetrics) isExtra(attr string) bool {
@@ -668,6 +787,7 @@ func (m *jobMetrics) forget(key string) {
 	}
 	delete(m.prev, key)
 	delete(m.pending, key)
+	delete(m.preimage, key)
 	delete(m.ended, key)
 }
 
@@ -680,6 +800,7 @@ func (m *jobMetrics) discard() {
 		return
 	}
 	clear(m.pending)
+	clear(m.preimage)
 }
 
 // collect builds the samples for the transaction about to be committed, reading each touched job
@@ -713,6 +834,7 @@ func (m *jobMetrics) collect(read rowReader, logSeq int64) ([]*classad.ClassAd, 
 		}
 	}
 	clear(m.pending)
+	clear(m.preimage)
 	return out, updates
 }
 
@@ -1304,6 +1426,12 @@ type MetricsStatus struct {
 	// Stalled counts rates suppressed because the starter's uptime counter did not advance
 	// between two samples: the same starter update committed more than once.
 	Stalled int64
+	// Unchanged counts attribute writes that set a value the row already held, and so were not
+	// treated as observations. It is large and expected to be: the shadow re-sends its whole
+	// update whitelist on every flush. What it is for is the ratio against Appended -- a pool
+	// where it collapses is one where something upstream started moving values that used to sit
+	// still, and sample volume will have climbed with it.
+	Unchanged int64
 }
 
 func (m *jobMetrics) status() MetricsStatus {
@@ -1321,6 +1449,7 @@ func (m *jobMetrics) status() MetricsStatus {
 		AfterEnd:          m.mAfterEnd.Load(),
 		ClockMix:          m.mClockMix.Load(),
 		Stalled:           m.mStalled.Load(),
+		Unchanged:         m.mUnchanged.Load(),
 	}
 }
 
