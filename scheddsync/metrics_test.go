@@ -1556,3 +1556,44 @@ func TestJobMetricsReplayedIdleFlushIsNotASample(t *testing.T) {
 			"observation logged twice)", kinds, want)
 	}
 }
+
+// TestJobMetricsClockOnlyFlushIsSampled is a gap that predates the unchanged-write rule: a commit
+// carrying ONLY the starter's clock produced no sample at all, because StatsLifetimeStarter is a
+// context attribute and nothing else in the commit was a usage attribute.
+//
+// The shadow sends its DIRTY attributes (qmgr_job_updater.cpp), and the dirty set is whatever the
+// starter's update ad re-inserted -- HTCondor's Insert marks an attribute dirty without comparing
+// values, which is why a flush usually re-sends everything. A starter that omits a counter (a
+// universe that publishes none, a platform where it does not exist) leaves a flush carrying little
+// more than the clock, and those flushes were invisible: the job's series simply stopped while it
+// was still running.
+func TestJobMetricsClockOnlyFlushIsSampled(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+	appendFile(t, logPath, spawned(1))
+	appendFile(t, logPath, starterUpdate(base+300, 570, 30, 1024, 1048576))
+	for r := 1; r <= 3; r++ {
+		appendFile(t, logPath, fmt.Sprintf(`105
+103 1.0 StatsLifetimeStarter %d
+103 1.0 LastJobLeaseRenewal %d
+106
+`, 900*r, base+int64(900*r)))
+	}
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "periodic", "periodic", "periodic", "periodic"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (a flush carrying only the starter's clock is still "+
+			"the starter reporting, and the job is still running)", kinds, want)
+	}
+}
