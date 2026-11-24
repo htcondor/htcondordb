@@ -891,7 +891,16 @@ func (m *jobMetrics) discard() {
 // Each key appears at most once per transaction (pending is keyed by job), so no sample in a
 // batch depends on another's cache update.
 func (m *jobMetrics) collect(read rowReader, logSeq int64) ([]*classad.ClassAd, []prevUpdate) {
-	if m == nil || len(m.pending) == 0 {
+	if m == nil {
+		return nil, nil
+	}
+	// The pre-image belongs to the transaction that is ending, whether or not anything in it was
+	// worth sampling -- and a transaction where NOTHING moved is the common one, since that is
+	// what the unchanged-write rule exists to recognise. Leaving it behind would both hold a copy
+	// of every row the transaction touched and compare the NEXT transaction's writes against a
+	// snapshot that is no longer the row.
+	defer clear(m.preimage)
+	if len(m.pending) == 0 {
 		return nil, nil
 	}
 	out := make([]*classad.ClassAd, 0, len(m.pending))
@@ -907,7 +916,6 @@ func (m *jobMetrics) collect(read rowReader, logSeq int64) ([]*classad.ClassAd, 
 		}
 	}
 	clear(m.pending)
-	clear(m.preimage)
 	return out, updates
 }
 
