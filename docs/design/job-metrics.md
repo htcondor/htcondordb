@@ -517,6 +517,37 @@ nothing, plus one useless record per job in a large submit. Two rules together:
 - A sample is only built when the job has run (`NumShadowStarts` present) **and** is executing
   (status Running / Transferring Output / Suspended) — or the commit is terminal, which is the
   run's endpoint whatever status it leaves behind.
+- An attribute write only counts as an observation when it **moves the value**. The schedd logs
+  a `SetAttribute` whether or not the value changed, and `QmgrJobUpdater` re-sends its whole
+  whitelist on every flush, so most of the writes in the stream set a value the row already
+  holds. Each candidate write is compared against the row's current value before it is noted.
+- A **starter clock advancing is itself an observation**. `StatsLifetimeStarter` (the starter's
+  uptime, published at BASIC level and carried by every update) and `StatsLastUpdateTimeStarter`
+  (verbose-level, usually absent) both trigger `periodic`.
+
+The last two rules are a pair and neither works alone. A job can run for hours moving no counter
+at all — blocked on a read, wedged, waiting on a lock — and those are the hours an operator most
+wants a series for. Judging such a flush only by whether a counter moved drops the job out of the
+data entirely, leaving a gap indistinguishable from a dead tailer; judging it by the starter's
+clock keeps one sample per flush and founds it on the starter having actually reported. The same
+clock is what separates a fresh flush from the *same* flush committed twice, where it does not
+advance. Nothing else in the whitelist serves: `CommittedTime` moves only when the starter sends
+`NewlyCommittedTime`, i.e. at a checkpoint, and `RecentStatsLifetimeStarter` plateaus once the
+starter's recent window fills.
+
+That last rule is not only about volume. `JobStatus` is in the whitelist, so every shadow flush
+re-sends it, and a sampler that reads a rewrite as a change labels the sample `"status"` — a
+transition that never happened, exempt from `MIN_INTERVAL` because transitions are exempt by
+design. The throttle then drops nothing at all on exactly the pools it exists for.
+
+The comparison costs one decode of the job ad per transaction, on top of the one building the
+sample already does. Two things keep that affordable: the row is read once per key per
+transaction and held, not re-read per attribute; and an attribute whose trigger cannot exceed
+what the transaction has already noted is never compared, because the sample is being taken
+either way and the label is the strongest trigger. Measured on a synthetic steady-state tail
+(500 running jobs, a 70-attribute ad each, a 25-attribute flush per job), that is ~300 extra
+allocations and ~11 KB per sampled transaction — about half again the sampler's own allocation,
+and inside the run-to-run noise of its wall clock.
 
 ### 4.3 End of run comes free — `epoch_history` is a cross-check, not a dependency
 
@@ -760,7 +791,15 @@ Recorded because the reasons generalize, not for completeness:
    either, because the synthetic content encoded the same assumption the code did. The lesson is
    narrow and reusable: when a rule depends on how another system batches its writes, the test
    has to be that system.
-9. **Three of the first tests passed for the wrong reason,** and mutation-checking each rule
+9. **An attribute write is not an observation** (§4.2a). The same shape as entry 2, one layer
+   in: having established that "an attribute changed" is not "the thing I am measuring changed",
+   the code still took the schedd's word for *changed*. It does not mean it — a `SetAttribute` is
+   logged whether or not the value moved — and because `JobStatus` rides in the whitelist, the
+   sampler was labelling ordinary flushes as state transitions and exempting them from its own
+   throttle. The generalizable part: when a system's log records intent rather than effect, the
+   consumer has to re-derive the effect, and there is usually no cheaper way than holding the
+   before-state.
+10. **Three of the first tests passed for the wrong reason,** and mutation-checking each rule
    against the test that claimed to cover it is what found them: the run-boundary test was really
    exercising the backwards-counter guard (a seam delta is normally negative — it needs the case
    where the new run's counter has already *exceeded* the old one), the context-attribute test was

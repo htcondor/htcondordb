@@ -17,7 +17,7 @@ import (
 const base int64 = 1700000000
 
 // newMetricsArchive opens a job_metrics archive with the same index set the daemon creates.
-func newMetricsArchive(t *testing.T) (*db.ArchiveTable, func()) {
+func newMetricsArchive(t testing.TB) (*db.ArchiveTable, func()) {
 	t.Helper()
 	cat, err := db.OpenCatalog(t.TempDir())
 	if err != nil {
@@ -47,6 +47,13 @@ func samples(t *testing.T, a *db.ArchiveTable) []*classad.ClassAd {
 	}
 	slices.Reverse(out)
 	return out
+}
+
+// noteMoved notes an attribute as having MOVED, bypassing note's comparison against the stored
+// value. The tests that use it drive the pending/collect lifecycle directly against a row that is
+// already carrying the new value, so there is nothing left for that comparison to read.
+func noteMoved(m *jobMetrics, key, attr string) {
+	m.note(nil, key, attr, "")
 }
 
 func trig(t *testing.T, ad *classad.ClassAd) string {
@@ -368,7 +375,7 @@ func TestJobMetricsAbortDropsPending(t *testing.T) {
 	before := len(samples(t, arch))
 
 	// Simulate a pass that noted a job and then failed before committing.
-	s.metrics.note("1.0", "MemoryUsage")
+	noteMoved(s.metrics, "1.0", "MemoryUsage")
 	if len(s.metrics.pending) != 1 {
 		t.Fatal("note should have recorded the job")
 	}
@@ -966,7 +973,7 @@ func TestJobMetricsCacheDeferredToCommit(t *testing.T) {
 	}
 
 	// A running sample, collected but NOT committed.
-	m.note("1.0", "RemoteUserCpu")
+	noteMoved(m, "1.0", "RemoteUserCpu")
 	s1, upd1 := m.collect(target, 1)
 	if len(s1) != 1 || len(upd1) != 1 {
 		t.Fatalf("collect = %d samples %d updates, want 1/1", len(s1), len(upd1))
@@ -985,7 +992,7 @@ func TestJobMetricsCacheDeferredToCommit(t *testing.T) {
 	if err := target.Put("1.0", job); err != nil {
 		t.Fatal(err)
 	}
-	m.note("1.0", "LastVacateTime")
+	noteMoved(m, "1.0", "LastVacateTime")
 	sTerm, _ := m.collect(target, 1)
 	if len(sTerm) != 1 || trig(t, sTerm[0]) != "terminal" {
 		t.Fatalf("expected one terminal sample, got %d", len(sTerm))
@@ -996,7 +1003,7 @@ func TestJobMetricsCacheDeferredToCommit(t *testing.T) {
 			"pass would find none and the run would lose its endpoint")
 	}
 	// Re-apply the identical entry, as the rewind does. The endpoint must come back.
-	m.note("1.0", "LastVacateTime")
+	noteMoved(m, "1.0", "LastVacateTime")
 	sAgain, updAgain := m.collect(target, 1)
 	if len(sAgain) != 1 || trig(t, sAgain[0]) != "terminal" {
 		t.Fatalf("re-applying after a failed commit produced %d samples, want the endpoint back",
@@ -1296,5 +1303,297 @@ func TestJobMetricsDerivedColumnsRejected(t *testing.T) {
 	}
 	if len(bad) != 3 {
 		t.Errorf("reported %d unusable columns %v, want 3 (Broken, MemUtil, MemoryUsage)", len(bad), bad)
+	}
+}
+
+// TestJobMetricsUnchangedStatusRewriteIsNotASample: the schedd logs a SetAttribute whether or not
+// the value moved, so a commit that writes JobStatus 2 onto a job already at 2 reaches the tailer
+// looking exactly like a state change. It is not one, and calling it one is worse than an extra
+// row: "status" is the label a consumer filters on to annotate a plot's transitions, and a status
+// trigger is deliberately exempt from the throttle.
+func TestJobMetricsUnchangedStatusRewriteIsNotASample(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+	appendFile(t, logPath, spawned(1))
+	appendFile(t, logPath, starterUpdate(base+300, 570, 30, 1024, 1048576))
+	// A commit that rewrites the status the job already has, and says nothing else.
+	appendFile(t, logPath, `105
+103 1.0 JobStatus 2
+106
+`)
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "periodic"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (the JobStatus rewrite moved nothing, so it is not "+
+			"an observation)", kinds, want)
+	}
+	if n := s.metrics.status().Unchanged; n == 0 {
+		t.Fatal("Unchanged = 0: the rewrite should have been counted as a write that moved nothing")
+	}
+}
+
+// TestJobMetricsRepeatedStarterUpdateIsNotASample: the same starter update committed twice. The
+// second commit carries the starter's clock and every counter again, all at the values the row
+// already holds -- there is no second observation here, only the same one logged twice. Without
+// this rule it produces a second "periodic" row at the same SampleTime, which a rate plot reads
+// as a zero-length interval.
+func TestJobMetricsRepeatedStarterUpdateIsNotASample(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+	appendFile(t, logPath, spawned(1))
+	update := starterUpdate(base+300, 570, 30, 1024, 1048576)
+	appendFile(t, logPath, update)
+	appendFile(t, logPath, update)
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "periodic"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (the repeated update is the same observation, not a "+
+			"second one)", kinds, want)
+	}
+}
+
+// TestJobMetricsUnchangedStatusDoesNotBypassThrottle is the first two rules meeting the volume
+// backstop, and the reason an unchanged write cannot simply be labelled and kept. A real shadow
+// flush re-sends JobStatus beside the counters; if that rewrite counts as a status change the
+// sample is labelled "status", and the throttle never drops a status sample -- so MinInterval
+// stops throttling anything at all on exactly the pools it was added for.
+func TestJobMetricsUnchangedStatusDoesNotBypassThrottle(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{MinInterval: 600 * time.Second})
+
+	appendFile(t, logPath, spawned(1))
+	// A usage update that re-sends the status it already has, well inside the throttle window.
+	appendFile(t, logPath, fmt.Sprintf(`105
+103 1.0 StatsLastUpdateTimeStarter %d
+103 1.0 RemoteUserCpu 60.0
+103 1.0 JobStatus 2
+106
+`, base+60))
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status"} // the spawn commit only
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (the usage update is periodic, not a transition, so "+
+			"the throttle drops it)", kinds, want)
+	}
+	if n := s.metrics.status().Throttled; n != 1 {
+		t.Fatalf("Throttled = %d, want 1 -- an unchanged JobStatus must not exempt a sample "+
+			"from MinInterval", n)
+	}
+}
+
+// TestJobMetricsSameValueSpelling pins the assumption the unchanged-write rule rests on, and that
+// nothing else would notice breaking: the store keeps its OWN spelling of an expression, not the
+// log's. A float arrives as "570.0" and comes back as "570", so comparing the log's text against
+// the row's text directly answers "did this move?" with yes, every time, for every float the
+// shadow sends -- and the rule silently stops working with no test failing anywhere near it.
+//
+// The attribute name is a second spelling difference, since ClassAd names are case-insensitive
+// and the shadow's spelling need not be the one the row was created with.
+func TestJobMetricsSameValueSpelling(t *testing.T) {
+	store, err := db.Open("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	tx := store.Begin()
+	tx.NewClassAd("1.0", classad.New())
+	for attr, value := range map[string]string{
+		"RemoteUserCpu": "570.0", "BytesSent": "1.5e3", "JobStatus": "2",
+		"Owner": `"alice"`, "TransferringOutput": "TRUE",
+	} {
+		if err := tx.SetAttribute("1.0", attr, value); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+	read := store.Begin()
+	defer read.Abort()
+	ad, ok := read.LookupClassAd("1.0")
+	if !ok {
+		t.Fatal("row vanished")
+	}
+
+	for _, c := range []struct {
+		attr, value string
+		same        bool
+	}{
+		{"RemoteUserCpu", "570.0", true},     // the exact text the row was written from
+		{"remoteusercpu", "570.0", true},     // and the name re-spelled
+		{"RemoteUserCpu", "570.00", true},    // and the value re-spelled
+		{"RemoteUserCpu", "570", true},       // an integer of the same value is not a move
+		{"RemoteUserCpu", "571.0", false},    // a move
+		{"BytesSent", "1500.0", true},        // written in exponent form, read back plain
+		{"JobStatus", "2", true},             //
+		{"JobStatus", "4", false},            //
+		{"Owner", `"alice"`, true},           //
+		{"Owner", `"bob"`, false},            //
+		{"TransferringOutput", "true", true}, // written TRUE
+		{"TransferringOutput", "", false},    // unparseable: never call it unchanged
+	} {
+		old, had := ad.Lookup(c.attr)
+		if !had {
+			t.Fatalf("%s: not bound in the row", c.attr)
+		}
+		if got := sameValue(old, c.value); got != c.same {
+			t.Errorf("sameValue(%s = %s, stored %s) = %v, want %v",
+				c.attr, c.value, old.String(), got, c.same)
+		}
+	}
+	if _, had := ad.Lookup("MemoryUsage"); had {
+		t.Error("MemoryUsage should not be bound -- an absent attribute has no value to match")
+	}
+}
+
+// idleFlush is a periodic shadow flush of a job that is running and doing nothing: the starter's
+// uptime advances and not one counter moves. No StatsLastUpdateTimeStarter, because that is a
+// verbose-level statistic a default starter does not publish.
+func idleFlush(uptime int) string {
+	return fmt.Sprintf(`105
+103 1.0 StatsLifetimeStarter %d
+103 1.0 RemoteUserCpu 12.0
+103 1.0 RemoteSysCpu 1.0
+103 1.0 MemoryUsage 512
+103 1.0 ResidentSetSize 524288
+103 1.0 BlockReadBytes 4096
+103 1.0 JobStatus 2
+106
+`, uptime)
+}
+
+// TestJobMetricsIdleRunningJobStillSampled is the counterweight to the unchanged-write rule, and
+// the case that rule gets wrong if it is read as "no change, no sample".
+//
+// A job can run for hours moving no counter at all -- blocked on a read, wedged, waiting on a
+// lock -- and those are the hours an operator most wants a series for. Every flush re-sends the
+// same numbers, so nothing in it has "changed" except the starter's own uptime. Keying periodic
+// on that clock is what keeps the job in the data: without it the series stops at the first
+// flush, and an hour of a live job is indistinguishable from a dead tailer.
+func TestJobMetricsIdleRunningJobStillSampled(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+	appendFile(t, logPath, spawned(1))
+	for r := 1; r <= 4; r++ {
+		appendFile(t, logPath, idleFlush(900*r))
+	}
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "periodic", "periodic", "periodic", "periodic"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (a live job that consumes nothing must still appear "+
+			"in the series, once per flush)", kinds, want)
+	}
+}
+
+// TestJobMetricsReplayedIdleFlushIsNotASample is the other half: the starter's uptime is also
+// what separates a fresh flush from the SAME flush committed twice. Identical bytes, so the
+// uptime has not advanced, so there is no second observation to record.
+func TestJobMetricsReplayedIdleFlushIsNotASample(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+	appendFile(t, logPath, spawned(1))
+	appendFile(t, logPath, idleFlush(900))
+	appendFile(t, logPath, idleFlush(900))
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "periodic"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (the uptime did not advance, so this is the same "+
+			"observation logged twice)", kinds, want)
+	}
+}
+
+// TestJobMetricsClockOnlyFlushIsSampled is a gap that predates the unchanged-write rule: a commit
+// carrying ONLY the starter's clock produced no sample at all, because StatsLifetimeStarter is a
+// context attribute and nothing else in the commit was a usage attribute.
+//
+// The shadow sends its DIRTY attributes (qmgr_job_updater.cpp), and the dirty set is whatever the
+// starter's update ad re-inserted -- HTCondor's Insert marks an attribute dirty without comparing
+// values, which is why a flush usually re-sends everything. A starter that omits a counter (a
+// universe that publishes none, a platform where it does not exist) leaves a flush carrying little
+// more than the clock, and those flushes were invisible: the job's series simply stopped while it
+// was still running.
+func TestJobMetricsClockOnlyFlushIsSampled(t *testing.T) {
+	pinClock(t, base-1)
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "job_queue.log")
+	writeFile(t, logPath, submitted)
+	s, arch := newSampledSync(t, logPath, JobMetricsConfig{})
+
+	appendFile(t, logPath, spawned(1))
+	appendFile(t, logPath, starterUpdate(base+300, 570, 30, 1024, 1048576))
+	for r := 1; r <= 3; r++ {
+		appendFile(t, logPath, fmt.Sprintf(`105
+103 1.0 StatsLifetimeStarter %d
+103 1.0 LastJobLeaseRenewal %d
+106
+`, 900*r, base+int64(900*r)))
+	}
+	if err := s.Poll(context.Background()); err != nil {
+		t.Fatalf("poll: %v", err)
+	}
+
+	var kinds []string
+	for _, ad := range samples(t, arch) {
+		kinds = append(kinds, trig(t, ad))
+	}
+	want := []string{"status", "periodic", "periodic", "periodic", "periodic"}
+	if !slices.Equal(kinds, want) {
+		t.Fatalf("triggers = %v, want %v (a flush carrying only the starter's clock is still "+
+			"the starter reporting, and the job is still running)", kinds, want)
 	}
 }
