@@ -165,12 +165,16 @@ func BenchmarkJobMetricsTail(b *testing.B) {
 		}
 	}
 
-	for _, sampling := range []bool{false, true} {
-		name := "off"
-		if sampling {
-			name = "on"
-		}
-		b.Run(name, func(b *testing.B) {
+	for _, arm := range []struct {
+		name       string
+		sampling   bool
+		persistent bool
+	}{
+		{"off", false, false}, {"on", true, false},
+		{"persistent/off", false, true}, {"persistent/on", true, true},
+	} {
+		sampling, persistent := arm.sampling, arm.persistent
+		b.Run(arm.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				dir := b.TempDir()
@@ -178,7 +182,7 @@ func BenchmarkJobMetricsTail(b *testing.B) {
 				if err := os.WriteFile(logPath, []byte("105\n106\n"+head.String()), 0o600); err != nil {
 					b.Fatal(err)
 				}
-				jobsTable, cfg := benchTables(b, dir, false)
+				jobsTable, cfg := benchTables(b, dir, persistent)
 				cfg.Filename = logPath
 				cfg.Logger = slog.New(slog.NewTextHandler(io.Discard, nil))
 				if sampling {
