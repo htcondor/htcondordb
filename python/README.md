@@ -179,8 +179,13 @@ htcondordb.set_log_level("info")          # off, error, warn, info, debug
 failures arrive as exceptions, which is all the log was duplicating.
 
 **Threads may share a connection** (`threadsafety = 2`) and will queue behind each other — the
-driver holds the connection's lock across every operation that reaches the library. A single
-*cursor* is not shareable: two threads fetching from one row buffer would interleave.
+connection admits one statement at a time, because the daemon keeps one executor per connection.
+A single *cursor* is not shareable: two threads fetching from one row buffer would interleave.
+
+What queues is *statements*. A thread waiting on a long query does not hold the lock that
+`cursor()` and the fetch path need, so the rest of the connection stays responsive while one
+query runs. A query with no `timeout` set has no bound, though, so the threads behind it wait as
+long as it does: give a query that may run for minutes its own connection.
 
 **Processes may not.** Go's runtime does not survive `fork()`, so a forked child cannot use the
 library at all — not even by opening a fresh connection, because the broken runtime is already

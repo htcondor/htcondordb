@@ -28,11 +28,20 @@ class Connection:
     """An authenticated session with an htcondordb daemon.
 
     Build one with :func:`htcondordb.connect`. The connection owns a single CEDAR stream, so
-    statements on it are serialized: the driver holds this connection's lock for the duration of
-    every operation that reaches the library, and the library holds its own for each statement.
-    Threads may share a connection (PEP 249 ``threadsafety = 2``) and will queue behind each
-    other; a single *cursor* is not safe to share, because two threads fetching from one row
-    buffer would interleave.
+    statements on it are serialized: the driver lets one statement at a time reach the library,
+    and the library holds its own per-connection lock for each one. Threads may share a
+    connection (PEP 249 ``threadsafety = 2``) and will queue behind each other; a single
+    *cursor* is not safe to share, because two threads fetching from one row buffer would
+    interleave.
+
+    **Two locks, in one order.** ``_exec_lock`` admits one statement at a time and is held
+    across the blocking library call; ``_lock`` protects this connection's Python state -- the
+    live-stream set, each cursor's row buffer, the transaction flag -- and is held only while
+    that state is being touched. A thread takes ``_exec_lock`` first and ``_lock`` inside it,
+    never the reverse, so the two can never deadlock. The point of the split is that a
+    statement waiting on the library does not hold the lock :meth:`cursor` and the fetch path
+    need: a stalled query makes other threads queue for the *connection*, which is what
+    ``threadsafety = 2`` promises, rather than freezing every operation on it.
 
     **Transactions.** The connection starts in autocommit mode, where each statement
     commits as it runs, :meth:`commit` is a no-op, and :meth:`rollback` raises. Setting
@@ -72,9 +81,20 @@ class Connection:
         timeout: float | None = None,
     ) -> None:
         self._lib = _library.load()
-        # Reentrant, and held across every operation that touches the library or this
-        # connection's state -- see the class docstring on what threadsafety = 2 means here.
-        # Reentrant because the paths nest: execute -> settle another cursor -> its fetch.
+        # Admits one statement at a time, and is the ONLY lock held across a call into the
+        # library. Reentrant because the statement paths nest: mappings() -> Cursor._run.
+        #
+        # This exists so that the state lock below does not have to be. A call into the
+        # library can block for as long as the query runs -- and with the default timeout of
+        # None it has no bound at all -- so holding the state lock across it froze every
+        # thread sharing the connection, including ones that only wanted a cursor.
+        self._exec_lock = threading.RLock()
+        # Protects this connection's Python state: the cursor and live-stream sets, each
+        # cursor's row buffer, the transaction flag. Held only while that state is being read
+        # or written, never across a library call.
+        #
+        # Reentrant because those paths nest too: settle another cursor -> its fetch. Always
+        # taken *inside* _exec_lock when both are wanted; see the class docstring.
         self._lock = threading.RLock()
         self._timeout = timeout
         self._settle_limit: int | None = None
@@ -293,6 +313,14 @@ class Connection:
         **Queries only.** A write is deliberately not bounded: cancelling one mid-flight can
         leave a transaction open on the server, which trades a hang for a worse problem. The
         connect attempt has its own fixed 30-second limit.
+
+        **It bounds the statement, not the wait for the connection.** The library takes its
+        per-connection executor lock before it applies this deadline, so a statement queued
+        behind another one on the same connection is not bounded by it. The driver keeps that
+        queue on its own side -- one statement reaches the library at a time -- so the wait is
+        at least interruptible bookkeeping rather than a park inside cgo; but a thread sharing
+        a connection with an unbounded query still waits for it. Give a long query its own
+        connection.
         """
         return self._timeout
 
@@ -452,10 +480,7 @@ class Connection:
         ``SUM(RequestMemory)`` becomes ``SumRequestMemory``, and an ``AS`` alias is used
         as-is when it is a legal attribute name.
         """
-        # An unfinished stream on this connection holds the executor lock, so settle it before
-        # opening another one.
-        with self._lock:
-            self._settle_streams()
+        with self._executing():
             from .adstream import ads as _ads
 
             return _ads(self, operation, parameters)
@@ -490,8 +515,7 @@ class Connection:
             A :class:`~htcondordb._mappings.MappingStream`: an iterator of dicts, also a context
             manager, with ``itersize`` for the batch size.
         """
-        with self._lock:
-            self._settle_streams()
+        with self._executing():
             from ._mappings import mappings as _mappings
 
             return _mappings(self, operation, parameters)
@@ -540,8 +564,7 @@ class Connection:
         arbitrarily large load run. Inside one, every batch stages into it and lands
         together.
         """
-        with self._lock:
-            self._settle_streams()
+        with self._executing():
             from .adwrite import DEFAULT_CHUNK, write_ads as _write_ads
 
             return _write_ads(self, table, ads, key=key, chunk=chunk or DEFAULT_CHUNK)
@@ -568,6 +591,41 @@ class Connection:
         _library.check_usable()
         if self._handle == 0:
             raise InterfaceError("the connection is closed")
+
+    @contextmanager
+    def _executing(self) -> Iterator[None]:
+        """Claim the connection for one statement, with the state lock free while it runs.
+
+        Everything that starts a statement enters here. It takes :attr:`_exec_lock`, settles
+        any unfinished stream under :attr:`_lock`, and then releases :attr:`_lock` before the
+        body makes its call into the library.
+
+        Why both locks, and why this order:
+
+        * The settle has to happen under :attr:`_lock`, because draining another cursor
+          mutates that cursor's row buffer and a concurrent fetch on it would interleave.
+        * Settle-then-open has to be atomic with respect to other statements, or a stream
+          opened by a thread that has not yet registered it is invisible to the next
+          thread's settle -- and that thread then waits inside the library, for the
+          executor lock the unregistered stream is holding, where nothing can settle
+          anything. :attr:`_exec_lock` provides that atomicity.
+        * The library call itself does not need :attr:`_lock`: it touches no Python state,
+          and :attr:`_exec_lock` already guarantees it is the only statement in flight. So
+          a thread that only wants a cursor, or wants to fetch from a cursor of its own,
+          never waits on a query.
+
+        The result is that the driver never lets two statements meet inside the library.
+        That matters more than it looks: the library acquires its per-connection executor
+        lock *before* it applies the statement's deadline, so a statement that queues there
+        is not bounded by ``timeout`` at all.
+        """
+        with self._exec_lock:
+            with self._lock:
+                # An unfinished stream on this connection holds the library's executor lock,
+                # so settle it before asking for anything else. Without this, two live
+                # cursors on one connection deadlock.
+                self._settle_streams()
+            yield
 
     def _note_stream(self, holder: Any) -> None:
         """Record a holder that is keeping the executor lock; see :meth:`_settle_streams`."""
