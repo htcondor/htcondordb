@@ -176,19 +176,22 @@ class Cursor:
         reuses everything here -- batching, settling, cleanup -- and differs only in the shape
         each row arrives in.
         """
-        # Under the connection's lock for the whole operation: settling another cursor mutates
-        # that cursor's row buffer, so a concurrent fetch on it would interleave.
-        with self._connection._lock:
-            # Another unfinished statement on this connection holds the executor lock, so settle
-            # it first. Without this, two live cursors on one connection deadlock.
-            self._connection._settle_streams()
+        # _executing() claims the connection for this statement and settles any unfinished
+        # stream, both before the body runs -- and leaves the connection's *state* lock free
+        # while the library call blocks. Opening a stream can take as long as the query does,
+        # and with no timeout set it has no bound at all; holding the state lock across it
+        # would freeze every other thread on this connection, cursor() included.
+        with self._connection._executing():
             stream = RowStream(
                 self._connection,
                 statement,
                 objects=objects,
                 timeout=self._connection.timeout,
             )
-            self._load_header(stream)
+            # Back under the state lock: the header sets the transaction flag and may
+            # register the stream as live.
+            with self._connection._lock:
+                self._load_header(stream)
         return self
 
     def executemany(

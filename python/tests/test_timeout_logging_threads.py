@@ -254,3 +254,89 @@ class TestSharedConnection:
         assert not thread.is_alive()
         assert not errors, f"the other thread failed: {errors[0]!r}"
         assert seen == 300, f"the iterating cursor saw {seen} of 300 rows"
+
+    def test_a_stalled_statement_does_not_block_another_thread(self, connection, rows):
+        """A statement waiting on the library must not hold the lock ``cursor()`` needs.
+
+        This is htcondor/htcondordb#442. ``Cursor._run`` used to hold the connection's lock
+        across the whole of ``RowStream.__init__``, whose cgo call is bounded by
+        ``connection.timeout`` -- which defaults to ``None``, meaning no bound at all. One
+        statement that did not return therefore froze every other thread on the connection,
+        including threads that only wanted a cursor, and nothing could break it: the job was
+        killed at its 15-minute cap.
+
+        The stall is **injected**, not raced for. A query that genuinely hangs is exactly
+        what nobody can reproduce on demand, and what is under test is not the query but the
+        lock discipline around it -- which is the same whatever the call is waiting for. So
+        ``RowStream`` is replaced by one that parks before doing anything, and the question
+        asked is the one that matters: can another thread still get a cursor?
+
+        Nothing here caps a runtime to make the suite green. Both assertions are made
+        *after* the stall is released, so a driver with the old locking fails this test with
+        a message rather than hanging in it.
+        """
+        from htcondordb import cursor as cursor_module
+
+        parked = threading.Event()
+        release = threading.Event()
+
+        class StallingRowStream(cursor_module.RowStream):
+            def __init__(self, *args, **kwargs):
+                parked.set()
+                assert release.wait(120), "the stalled statement was never released"
+                super().__init__(*args, **kwargs)
+
+        failures: list[BaseException] = []
+        cursors: list = []
+
+        def stalled_statement() -> None:
+            try:
+                connection.execute(f"SELECT Idx FROM {rows}").close()
+            except BaseException as exc:  # noqa: BLE001 - reported on the main thread
+                failures.append(exc)
+
+        def wants_a_cursor() -> None:
+            try:
+                cursors.append(connection.cursor())
+            except BaseException as exc:  # noqa: BLE001
+                failures.append(exc)
+
+        stall = threading.Thread(target=stalled_statement)
+        # The whole question, in one line: with a statement parked inside the library, does a
+        # second thread get its cursor? Ten seconds is a detection window, not a deadline on
+        # real work -- cursor() allocates an object and touches two sets.
+        asker = threading.Thread(target=wants_a_cursor)
+        blocked = True
+        reached = False
+
+        original = cursor_module.RowStream
+        cursor_module.RowStream = StallingRowStream
+        try:
+            stall.start()
+            reached = parked.wait(30)
+            if reached:
+                asker.start()
+                asker.join(timeout=10)
+                blocked = asker.is_alive()
+        finally:
+            # Release before asserting anything, so the old locking fails this test with a
+            # message instead of leaving a thread parked in it.
+            release.set()
+            cursor_module.RowStream = original
+
+        stall.join(timeout=120)
+        if reached:
+            asker.join(timeout=120)
+        assert reached, "the statement never reached the library call"
+        assert not stall.is_alive() and not asker.is_alive()
+
+        assert not blocked, (
+            "cursor() waited on a thread parked inside the library: the connection's state "
+            "lock is being held across the blocking call (htcondor/htcondordb#442)"
+        )
+        assert not failures, f"a worker failed: {failures[0]!r}"
+        for cursor in cursors:
+            cursor.close()
+        # And the connection is still usable afterwards: narrowing the critical section must
+        # not have left the stream bookkeeping inconsistent.
+        assert len(connection.execute(f"SELECT Idx FROM {rows}").fetchall()) == 300
