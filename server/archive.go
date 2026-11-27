@@ -2,7 +2,10 @@ package server
 
 import (
 	"context"
+	"strings"
 	"time"
+
+	"github.com/PelicanPlatform/classad/db"
 )
 
 // DefaultArchiveRetrainInterval is how often an archive retrains its compression dictionary during
@@ -61,8 +64,56 @@ func (s *Service) maintainArchivesOnce(now float64) {
 			s.log.Info("rotated archive", "archive", name, "segments_dropped", dropped)
 		}
 		a.Reindex() // build sidecar indexes for newly-sealed segments (idempotent, off-lock)
+		s.reportRequireSkips(name, a.SchemaScanInfo().RequireSkipped)
 		s.maybeRetrainArchive(name)
 	}
+}
+
+// reportRequireSkips logs the required schema attributes the archive's last derivation could not
+// make a column of, and why.
+//
+// A required attribute that quietly does nothing is the failure mode worth the log line. Setting
+// the required set already logs what was ASKED for; nothing said what was granted, so an attribute
+// refused for a reason the operator could act on -- misspelled, absent from the data, or
+// expression-valued in every record -- looked exactly like one that was working. The archive then
+// reads that attribute from whole records forever, which is visible only as queries being slower
+// than the configuration implies.
+//
+// Reported once per distinct set rather than on every pass: a refusal is usually standing, and an
+// hourly repeat of an unchanging line is noise that gets filtered out. The set becoming empty is
+// logged too, so a refusal that has since been resolved does not read as still in force.
+func (s *Service) reportRequireSkips(name string, skipped []db.SchemaRequireSkip) {
+	var b strings.Builder
+	for i, sk := range skipped {
+		if i > 0 {
+			b.WriteString("; ")
+		}
+		b.WriteString(sk.Name)
+		b.WriteString(": ")
+		b.WriteString(sk.Reason)
+	}
+	cur := b.String()
+
+	s.skipMu.Lock()
+	last, seen := s.lastRequireSkips[name]
+	if seen && last == cur {
+		s.skipMu.Unlock()
+		return
+	}
+	if s.lastRequireSkips == nil {
+		s.lastRequireSkips = map[string]string{}
+	}
+	s.lastRequireSkips[name] = cur
+	s.skipMu.Unlock()
+
+	if cur == "" {
+		if seen {
+			s.log.Info("archive required attributes: all admitted as columns", "archive", name)
+		}
+		return
+	}
+	s.log.Warn("archive required attributes refused: they are read from whole records, not columns",
+		"archive", name, "refused", cur)
 }
 
 // maybeRetrainArchive retrains the archive's compression dictionary if its interval has elapsed.

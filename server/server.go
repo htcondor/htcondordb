@@ -250,6 +250,12 @@ type Service struct {
 	archiveRetrainEvery time.Duration
 	archiveRetrainSeed  time.Time
 
+	// Required-attribute refusals already reported (see reportRequireSkips). Keyed by archive
+	// name, holding the last set logged, so a standing refusal is reported once rather than on
+	// every maintenance pass. skipMu guards it.
+	skipMu           sync.Mutex
+	lastRequireSkips map[string]string
+
 	// backups records the outcome of every snapshot this daemon takes, for the metrics endpoint
 	// and for an operator asking when the last one succeeded.
 	backups backupStatsRecorder
