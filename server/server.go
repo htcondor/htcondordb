@@ -101,6 +101,11 @@ type Config struct {
 	// Disable it on a daemon where the per-query constraint parse is not wanted.
 	DisableQueryStats bool
 
+	// TraceRequest, when set, is every client connection's dbrpc.ServeOptions.TraceRequest:
+	// it records the requests a caller traced (see package tracing). Nil, the default,
+	// records nothing and costs nothing per request.
+	TraceRequest func(ctx context.Context, req dbrpc.TracedRequest) func(dbrpc.TraceResult)
+
 	// QueryStats overrides the aggregation's bounds (shape cap, exemplars kept, the
 	// minimum duration recorded). Ignored when DisableQueryStats is set; the zero value
 	// takes the library defaults.
@@ -231,6 +236,7 @@ type Service struct {
 	authorize    Authorizer
 	forceReadOn  bool
 	logQueries   bool
+	traceRequest func(context.Context, dbrpc.TracedRequest) func(dbrpc.TraceResult) // Config.TraceRequest
 	// maintainOpts is the resolved maintenance configuration the background loop was
 	// started with (zero when maintenance is disabled).
 	maintainOpts      db.MaintainOptions
@@ -319,6 +325,7 @@ func New(cfg Config) (*Service, error) {
 		authorize:         cfg.Authorize,
 		forceReadOn:       cfg.ForceReadOnly,
 		logQueries:        cfg.LogQueries,
+		traceRequest:      cfg.TraceRequest,
 		log:               log,
 		owners:            NewTableOwners(),
 		onClosePhaseStart: cfg.OnClosePhaseStart,
@@ -526,7 +533,7 @@ func (s *Service) queryLogHook(user, remote string) func(dbrpc.QueryLog) {
 }
 
 // ServeOptions builds the dbrpc options for one client connection: its access level, the
-// daemon-wide read-only override, and the per-table write gate. sessionID is the CEDAR session the
+// daemon-wide read-only override, the per-table write gate, and the trace hook. sessionID is the CEDAR session the
 // connection runs on; it only matters for a session granted to an out-of-process owner
 // (TableOwners.GrantSession).
 //
@@ -540,6 +547,7 @@ func (s *Service) ServeOptions(level Level, sessionID string) dbrpc.ServeOptions
 	}
 	owners := s.owners
 	opts.TableWritable = func(table string) bool { return owners.Writable(table, sessionID) }
+	opts.TraceRequest = s.traceRequest
 	return opts
 }
 
