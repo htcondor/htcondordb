@@ -11,7 +11,7 @@ toolchain go1.27.0
 require (
 	github.com/PelicanPlatform/classad v0.44.2
 	github.com/PelicanPlatform/classad/db v0.44.2
-	github.com/PelicanPlatform/classad/dbrpc v0.44.3-0.20261128153050-1f932e7cea2c
+	github.com/PelicanPlatform/classad/dbrpc v0.44.3-0.20261128161605-37d1b9434111
 	github.com/htcondor/cedar v0.7.17
 	github.com/htcondor/golang-htcondor v0.26.1
 	github.com/htcondor/htcondordb v0.0.0

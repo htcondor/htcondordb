@@ -104,7 +104,7 @@ type Config struct {
 	// TraceRequest, when set, is every client connection's dbrpc.ServeOptions.TraceRequest:
 	// it records the requests a caller traced (see package tracing). Nil, the default,
 	// records nothing and costs nothing per request.
-	TraceRequest func(ctx context.Context, req dbrpc.TracedRequest) func()
+	TraceRequest func(ctx context.Context, req dbrpc.TracedRequest) func(dbrpc.TraceResult)
 
 	// QueryStats overrides the aggregation's bounds (shape cap, exemplars kept, the
 	// minimum duration recorded). Ignored when DisableQueryStats is set; the zero value
@@ -236,7 +236,7 @@ type Service struct {
 	authorize    Authorizer
 	forceReadOn  bool
 	logQueries   bool
-	traceRequest func(context.Context, dbrpc.TracedRequest) func() // Config.TraceRequest
+	traceRequest func(context.Context, dbrpc.TracedRequest) func(dbrpc.TraceResult) // Config.TraceRequest
 	// maintainOpts is the resolved maintenance configuration the background loop was
 	// started with (zero when maintenance is disabled).
 	maintainOpts      db.MaintainOptions

@@ -5,9 +5,9 @@
 // only for a request that carries one, so the spans recorded here are exactly the requests
 // a caller chose to trace. The sampler is ParentBased(NeverSample) to keep it that way.
 //
-// A span carries the operation name and nothing about its arguments: a constraint can name
-// private attributes and their values, and spans are exported off the host. The peer
-// identity is left out for the same reason.
+// A span carries the operation, its outcome and response size, and for a query the table,
+// row counts and scan counters. It never carries the constraint, which can name private
+// attributes and their values, or the peer identity: spans are exported off the host.
 package tracing
 
 import (
@@ -18,10 +18,12 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -57,7 +59,7 @@ type Provider struct {
 	tp *sdktrace.TracerProvider
 	// TracesURL is the URL spans are posted to.
 	TracesURL string
-	hook      func(context.Context, dbrpc.TracedRequest) func()
+	hook      func(context.Context, dbrpc.TracedRequest) func(dbrpc.TraceResult)
 }
 
 // ResolveEndpoint resolves a configured endpoint to the URL spans are posted to. It refuses
@@ -129,7 +131,7 @@ func resourceAttrs(cfg Config) []attribute.KeyValue {
 func Sampler() sdktrace.Sampler { return sdktrace.ParentBased(sdktrace.NeverSample()) }
 
 // TraceRequest is the dbrpc.ServeOptions.TraceRequest hook for this provider.
-func (p *Provider) TraceRequest() func(context.Context, dbrpc.TracedRequest) func() {
+func (p *Provider) TraceRequest() func(context.Context, dbrpc.TracedRequest) func(dbrpc.TraceResult) {
 	return p.hook
 }
 
@@ -150,10 +152,10 @@ type opSpan struct {
 //
 // The span is a sibling of the handler's work rather than its parent: dbrpc does not let
 // the hook replace the handler's context. Nothing in dbrpc starts spans of its own today.
-func Hook(tp trace.TracerProvider) func(context.Context, dbrpc.TracedRequest) func() {
+func Hook(tp trace.TracerProvider) func(context.Context, dbrpc.TracedRequest) func(dbrpc.TraceResult) {
 	tracer := tp.Tracer(tracerName)
 	var ops sync.Map // op name -> *opSpan
-	return func(ctx context.Context, req dbrpc.TracedRequest) func() {
+	return func(ctx context.Context, req dbrpc.TracedRequest) func(dbrpc.TraceResult) {
 		// dbrpc clients send only sampled contexts; another client could send an unsampled
 		// one, which the sampler would drop anyway. Skip building a span for it.
 		if req.Trace.Flags&byte(trace.FlagsSampled) == 0 {
@@ -177,6 +179,64 @@ func Hook(tp trace.TracerProvider) func(context.Context, dbrpc.TracedRequest) fu
 			Remote:     true,
 		})
 		_, span := tracer.Start(trace.ContextWithRemoteSpanContext(ctx, parent), op.name, op.opts...)
-		return func() { span.End() }
+		return func(res dbrpc.TraceResult) { finishSpan(span, res) }
 	}
+}
+
+// finishSpan records what the request did on span and ends it.
+//
+// Error and bad-request outcomes set the span's status, described by the status name alone,
+// never an error message: a message can quote the request. A missing key and a commit
+// conflict are answers, so they are reported as dbrpc.status only.
+//
+// Scan and column counters are zero when the query path did not measure them, so a zero
+// block is left out rather than reported as a scan that touched nothing.
+func finishSpan(span trace.Span, res dbrpc.TraceResult) {
+	if !span.IsRecording() {
+		span.End()
+		return
+	}
+	status := res.Status.String()
+	switch res.Status {
+	case dbrpc.TraceError, dbrpc.TraceBadRequest:
+		span.SetStatus(codes.Error, status)
+	}
+	attrs := make([]attribute.KeyValue, 0, 20)
+	attrs = append(attrs,
+		attribute.String("dbrpc.status", status),
+		attribute.Int("dbrpc.response.frames", res.Frames),
+		attribute.Int64("dbrpc.response.bytes", res.Bytes),
+		attribute.Float64("dbrpc.write_blocked_ms", float64(res.WriteBlocked)/float64(time.Millisecond)),
+	)
+	if res.HasQuery {
+		q := res.Query
+		attrs = append(attrs,
+			attribute.String("db.collection.name", q.Table),
+			attribute.Int("dbrpc.query.rows", q.Rows),
+			attribute.Int("dbrpc.query.limit", q.Limit),
+			attribute.Int("dbrpc.query.projection", q.Projection),
+		)
+		if sc := q.Scan; sc.SegmentsTotal > 0 {
+			attrs = append(attrs,
+				attribute.Int("dbrpc.scan.segments_total", sc.SegmentsTotal),
+				attribute.Int("dbrpc.scan.segments_pruned", sc.SegmentsPruned),
+				attribute.Int("dbrpc.scan.segments_scanned", sc.SegmentsScanned),
+				attribute.Int("dbrpc.scan.segments_indexed", sc.SegmentsIndexed),
+				attribute.Int("dbrpc.scan.records_visited", sc.RecordsVisited),
+				attribute.Int("dbrpc.scan.records_reassembled", sc.RecordsReassembled),
+				attribute.Int("dbrpc.scan.records_column_decided", sc.RecordsColumnDecided),
+				attribute.Int("dbrpc.scan.rows_matched", sc.RowsMatched),
+			)
+		}
+		if cs := q.Columns; cs.Rows > 0 {
+			attrs = append(attrs,
+				attribute.Int("dbrpc.columns.vector_blocks", cs.VectorBlocks),
+				attribute.Int("dbrpc.columns.scope_blocks", cs.ScopeBlocks),
+				attribute.Int("dbrpc.columns.pruned_blocks", cs.PrunedBlocks),
+				attribute.Int("dbrpc.columns.row_windows", cs.RowWindows),
+			)
+		}
+	}
+	span.SetAttributes(attrs...)
+	span.End()
 }

@@ -20,7 +20,7 @@ require (
 	github.com/PelicanPlatform/classad/changefeed v0.44.2
 	github.com/PelicanPlatform/classad/collections v0.44.2
 	github.com/PelicanPlatform/classad/db v0.44.2
-	github.com/PelicanPlatform/classad/dbrpc v0.44.3-0.20261128153050-1f932e7cea2c
+	github.com/PelicanPlatform/classad/dbrpc v0.44.3-0.20261128161605-37d1b9434111
 	github.com/PelicanPlatform/classad/wasmudf v0.44.2
 	github.com/apache/arrow-go/v18 v18.9.0
 	github.com/chzyer/readline v1.5.1

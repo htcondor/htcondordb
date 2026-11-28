@@ -19,7 +19,7 @@ const tracingShutdownTimeout = 5 * time.Second
 // exporter and returns the dbrpc TraceRequest hook and a function that flushes and stops
 // the exporter. Unset, or a value it cannot use, returns a nil hook and a no-op stop:
 // no TracerProvider is installed and requests are served exactly as without tracing.
-func startTracing(cfg *config.Config, log *logging.Logger) (hook func(context.Context, dbrpc.TracedRequest) func(), stop func()) {
+func startTracing(cfg *config.Config, log *logging.Logger) (hook func(context.Context, dbrpc.TracedRequest) func(dbrpc.TraceResult), stop func()) {
 	stop = func() {}
 	endpoint := getStr(cfg, "HTCONDORDB_OTEL_ENDPOINT")
 	if endpoint == "" {

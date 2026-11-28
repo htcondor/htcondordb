@@ -8,6 +8,7 @@ import (
 
 	"github.com/PelicanPlatform/classad/dbrpc"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
@@ -41,10 +42,10 @@ func newTracedService(t *testing.T, rec *tracetest.SpanRecorder) *Service {
 // dialTraced serves one in-memory connection with the options handleSession builds, and
 // returns a client that knows the server's advertisement (so it may send a trace context)
 // and forwards the OpenTelemetry span context of each call's ctx.
-func dialTraced(t *testing.T, svc *Service) *dbrpc.Client {
+func dialTraced(t *testing.T, svc *Service, level Level) *dbrpc.Client {
 	t.Helper()
 	cp, sp := net.Pipe()
-	go func() { _ = svc.RPC().ServeConnOpts(dbrpc.NewStreamConn(sp), svc.ServeOptions(LevelRead, "")) }()
+	go func() { _ = svc.RPC().ServeConnOpts(dbrpc.NewStreamConn(sp), svc.ServeOptions(level, "")) }()
 	c := dbrpc.NewClient(dbrpc.NewStreamConn(cp),
 		dbrpc.WithPeerSessionAttrs(svc.RPC().SessionAttrs()),
 		dbrpc.WithTraceContext(func(ctx context.Context) (dbrpc.TraceContext, bool) {
@@ -77,25 +78,58 @@ func waitEnded(t *testing.T, rec *tracetest.SpanRecorder, n int) []sdktrace.Read
 	}
 }
 
+// spanAttrs is a span's attributes by key.
+func spanAttrs(s sdktrace.ReadOnlySpan) map[attribute.Key]attribute.Value {
+	m := map[attribute.Key]attribute.Value{}
+	for _, kv := range s.Attributes() {
+		m[kv.Key] = kv.Value
+	}
+	return m
+}
+
+// onlySpan runs call under a sampled caller span and returns the one server span it produced.
+func onlySpan(t *testing.T, rec *tracetest.SpanRecorder, call func(ctx context.Context) error) sdktrace.ReadOnlySpan {
+	t.Helper()
+	before := len(rec.Ended())
+	ctx, cancel := context.WithTimeout(callerContext(trace.FlagsSampled), 10*time.Second)
+	defer cancel()
+	_ = call(ctx)
+	ended := waitEnded(t, rec, before+1)
+	if len(ended) != before+1 {
+		t.Fatalf("ended spans = %d, want %d", len(ended), before+1)
+	}
+	return ended[before]
+}
+
+func wantInt(t *testing.T, a map[attribute.Key]attribute.Value, key attribute.Key, want int64) {
+	t.Helper()
+	v, ok := a[key]
+	if !ok {
+		t.Errorf("attribute %s missing, want %d", key, want)
+		return
+	}
+	if v.Type() != attribute.INT64 || v.AsInt64() != want {
+		t.Errorf("attribute %s = %v, want %d", key, v.AsInterface(), want)
+	}
+}
+
+func wantStr(t *testing.T, a map[attribute.Key]attribute.Value, key attribute.Key, want string) {
+	t.Helper()
+	if v, ok := a[key]; !ok || v.AsString() != want {
+		t.Errorf("attribute %s = %q (present %v), want %q", key, v.AsString(), ok, want)
+	}
+}
+
 // TestTraceRequestRecordsServerSpan is the contract of the hook: a request whose caller
 // sampled its span is recorded as one server span, a child of the caller's span in the
-// caller's trace, carrying the RPC system and method and nothing about the peer.
+// caller's trace, carrying the RPC method, its outcome and its response size, and nothing
+// about the peer.
 func TestTraceRequestRecordsServerSpan(t *testing.T) {
 	rec := tracetest.NewSpanRecorder()
 	svc := newTracedService(t, rec)
-	c := dialTraced(t, svc)
+	c := dialTraced(t, svc, LevelRead)
 
-	ctx, cancel := context.WithTimeout(callerContext(trace.FlagsSampled), 10*time.Second)
-	defer cancel()
-	if _, err := c.Tables(ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	ended := waitEnded(t, rec, 1)
-	if len(ended) != 1 {
-		t.Fatalf("ended spans = %d, want 1", len(ended))
-	}
-	s := ended[0]
+	s := onlySpan(t, rec, func(ctx context.Context) error { _, err := c.Tables(ctx); return err })
 	if s.Name() != "dbrpc.ListTables" {
 		t.Errorf("span name = %q, want dbrpc.ListTables", s.Name())
 	}
@@ -111,19 +145,94 @@ func TestTraceRequestRecordsServerSpan(t *testing.T) {
 	if !s.Parent().IsRemote() {
 		t.Error("parent is not marked remote")
 	}
-	want := map[attribute.Key]string{"rpc.system": "dbrpc", "rpc.method": "ListTables"}
-	got := map[attribute.Key]string{}
-	for _, kv := range s.Attributes() {
-		got[kv.Key] = kv.Value.AsString()
+	if s.Status().Code != codes.Unset {
+		t.Errorf("status = %v, want unset", s.Status())
 	}
-	if len(got) != len(want) {
-		t.Errorf("attributes = %v, want exactly %v", got, want)
+	a := spanAttrs(s)
+	wantStr(t, a, "rpc.system", "dbrpc")
+	wantStr(t, a, "rpc.method", "ListTables")
+	wantStr(t, a, "dbrpc.status", "ok")
+	wantInt(t, a, "dbrpc.response.frames", 1)
+	if v := a["dbrpc.response.bytes"]; v.AsInt64() <= 0 {
+		t.Errorf("dbrpc.response.bytes = %v, want > 0", v.AsInterface())
 	}
-	for k, v := range want {
-		if got[k] != v {
-			t.Errorf("attribute %s = %q, want %q", k, got[k], v)
+	if v, ok := a["dbrpc.write_blocked_ms"]; !ok || v.Type() != attribute.FLOAT64 {
+		t.Errorf("dbrpc.write_blocked_ms = %v (present %v), want a float", v.AsInterface(), ok)
+	}
+	if _, ok := a["db.collection.name"]; ok {
+		t.Error("db.collection.name set on a request that is not a query")
+	}
+	if len(a) != 6 {
+		t.Errorf("attributes = %v, want exactly the six above", a)
+	}
+}
+
+// TestTraceRequestQuerySpan: a traced query reports its table, row count, LIMIT and
+// projection, and never its constraint.
+func TestTraceRequestQuerySpan(t *testing.T) {
+	rec := tracetest.NewSpanRecorder()
+	svc := newTracedService(t, rec)
+	if _, err := svc.Catalog().CreateTable("jobs"); err != nil {
+		t.Fatal(err)
+	}
+	w := dialTraced(t, svc, LevelWrite)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	for _, key := range []string{"1.0", "1.1", "1.2"} {
+		if err := putAd(ctx, w, "jobs", key); err != nil {
+			t.Fatal(err)
 		}
 	}
+
+	const constraint = `Owner == "alice"`
+	c := dialTraced(t, svc, LevelRead)
+	var rows []string
+	s := onlySpan(t, rec, func(ctx context.Context) error {
+		var err error
+		rows, err = c.QueryRawProject(ctx, "jobs", constraint, []string{"Owner"}, 10)
+		return err
+	})
+	if len(rows) != 3 {
+		t.Fatalf("query returned %d rows, want 3", len(rows))
+	}
+	if s.Status().Code != codes.Unset {
+		t.Errorf("status = %v, want unset", s.Status())
+	}
+	a := spanAttrs(s)
+	wantStr(t, a, "dbrpc.status", "ok")
+	wantStr(t, a, "db.collection.name", "jobs")
+	wantInt(t, a, "dbrpc.query.rows", 3)
+	wantInt(t, a, "dbrpc.query.limit", 10)
+	wantInt(t, a, "dbrpc.query.projection", 1)
+	// Every row was streamed in a frame before the terminator.
+	if v := a["dbrpc.response.frames"]; v.AsInt64() < 2 {
+		t.Errorf("dbrpc.response.frames = %v, want at least a row frame and a terminator", v.AsInterface())
+	}
+	for k, v := range a {
+		if v.Type() == attribute.STRING && v.AsString() == constraint {
+			t.Errorf("attribute %s carries the constraint", k)
+		}
+	}
+}
+
+// TestTraceRequestErrorSpan: a request that fails sets the span's status to Error, described
+// by the status name rather than the error text.
+func TestTraceRequestErrorSpan(t *testing.T) {
+	rec := tracetest.NewSpanRecorder()
+	svc := newTracedService(t, rec)
+	c := dialTraced(t, svc, LevelRead)
+
+	s := onlySpan(t, rec, func(ctx context.Context) error {
+		_, err := c.ArchiveQuery(ctx, "no_such_archive", "true", 10)
+		if err == nil {
+			t.Error("ArchiveQuery on a missing archive succeeded")
+		}
+		return err
+	})
+	if st := s.Status(); st.Code != codes.Error || st.Description != "error" {
+		t.Errorf("status = %+v, want Error described as \"error\"", st)
+	}
+	wantStr(t, spanAttrs(s), "dbrpc.status", "error")
 }
 
 // TestTraceRequestUnsampledCallerRecordsNothing: a caller that did not sample its span
@@ -131,7 +240,7 @@ func TestTraceRequestRecordsServerSpan(t *testing.T) {
 func TestTraceRequestUnsampledCallerRecordsNothing(t *testing.T) {
 	rec := tracetest.NewSpanRecorder()
 	svc := newTracedService(t, rec)
-	c := dialTraced(t, svc)
+	c := dialTraced(t, svc, LevelRead)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
