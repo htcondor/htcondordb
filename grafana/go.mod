@@ -9,7 +9,7 @@ toolchain go1.27.0
 
 require (
 	github.com/PelicanPlatform/classad v0.44.2
-	github.com/PelicanPlatform/classad/dbrpc v0.44.2
+	github.com/PelicanPlatform/classad/dbrpc v0.44.3-0.20261128153050-1f932e7cea2c
 	github.com/apache/arrow-go/v18 v18.9.0
 	github.com/grafana/grafana-plugin-sdk-go v0.300.0
 	github.com/htcondor/cedar v0.7.17

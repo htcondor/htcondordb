@@ -305,6 +305,11 @@ func run() error {
 	obs := startObservability(cfg, log, boot.statusLine)
 	defer obs.Close()
 
+	// HTCONDORDB_OTEL_ENDPOINT: record the requests a caller traced. Unset leaves the hook nil.
+	// Deferred before the store's close, so it runs after it: spans end as requests finish.
+	traceRequest, stopTracing := startTracing(cfg, log)
+	defer stopTracing()
+
 	svc, err := server.New(server.Config{
 		OnPhase:         boot.record,
 		OnTableOpen:     boot.recordTableOpen,
@@ -327,6 +332,7 @@ func run() error {
 		ForceReadOnly:         ha.forceReadOnly,
 		Logger:                d.Slog(),
 		LogQueries:            logQueries,
+		TraceRequest:          traceRequest,
 		DisableQueryStats:     noQueryStats,
 		MemoryTables:          memoryTables,
 		PoolKeys:              poolKeys,

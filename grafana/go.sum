@@ -8,8 +8,8 @@ github.com/PelicanPlatform/classad/collections v0.44.2 h1:3KOTyA4UVHSFsS2+FZ4s4R
 github.com/PelicanPlatform/classad/collections v0.44.2/go.mod h1:V5tnYyaH0MVIOsqODgo9OAtjvd2iDa88xMu+xMJa3oQ=
 github.com/PelicanPlatform/classad/db v0.44.2 h1:6jdLIU2D3ks5mfkV7pK99gZz0RrYsiQ7dBb6ha2bfy0=
 github.com/PelicanPlatform/classad/db v0.44.2/go.mod h1:jQDTCoDRKQdXlq8fhe37rTDIG22vwIpbdbqWCnOLvaM=
-github.com/PelicanPlatform/classad/dbrpc v0.44.2 h1:8PP5BJG5cCkjwhtoBrh4ZSybaXhL2L9ElkL8a0jrofo=
-github.com/PelicanPlatform/classad/dbrpc v0.44.2/go.mod h1:bfGobiMM3tPJVjm52f6+csfTRU6+8uKSK9Zh36ueGCc=
+github.com/PelicanPlatform/classad/dbrpc v0.44.3-0.20261128153050-1f932e7cea2c h1:nMkSyL4PPZdgMJCjnaz9BAqDHnWbSDjM2KN14UjcEUU=
+github.com/PelicanPlatform/classad/dbrpc v0.44.3-0.20261128153050-1f932e7cea2c/go.mod h1:bfGobiMM3tPJVjm52f6+csfTRU6+8uKSK9Zh36ueGCc=
 github.com/RoaringBitmap/roaring/v2 v2.29.0 h1:jSjxqZEqiF9W5dHUFsemupb9bnLaQJwZVe5yMetbsZg=
 github.com/RoaringBitmap/roaring/v2 v2.29.0/go.mod h1:BZufmFbox589n3j5eOmyTaLSGXbRLc2LmQvjKjzSEGU=
 github.com/andybalholm/brotli v1.2.8 h1:H9F6r7RNwzSRsx/lytpIYkbjNFMt2yNBwsJ2+0gpx78=
